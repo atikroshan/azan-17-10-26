@@ -641,7 +641,7 @@ fun AzanHomeContent(
 
         val baseTopPadding = 205.dp
         val navGap = 16.dp
-        val collapsedSheetHeight = 265.dp
+        val collapsedSheetHeight = 280.dp
         val collapsedSheetHeightPx = with(density) { collapsedSheetHeight.toPx() }
 
         val screenHeightPx = with(density) { screenHeight.toPx() }
@@ -855,17 +855,17 @@ fun AzanHomeContent(
                 .fillMaxWidth()
                 .let { if (isPulledDown) it.wrapContentHeight() else it.fillMaxHeight() }
                 .padding(
-                    top = (baseTopPadding + currentOffsetDp - 20.dp).coerceAtLeast(0.dp),
-                    bottom = if (isPulledDown) 0.dp else 10.dp
+                    top = (baseTopPadding + currentOffsetDp - 18.dp).coerceAtLeast(0.dp),
+                    bottom = if (isPulledDown) 14.dp else 10.dp
                 )
         ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .let { if (isPulledDown) it.wrapContentHeight() else it.fillMaxHeight() }
-                    .padding(top = 20.dp)
+                    .padding(top = 18.dp)
                     .nestedScroll(nestedScrollConnection),
-                shape = if (isPulledDown) RoundedCornerShape(24.dp) else RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                shape = if (isPulledDown) RoundedCornerShape(22.dp) else RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
                 color = Color(0xFF06140D),
                 border = null,
                 shadowElevation = 10.dp
@@ -877,8 +877,8 @@ fun AzanHomeContent(
                         .padding(
                             start = 14.dp,
                             end = 14.dp,
-                            top = 28.dp,
-                            bottom = if (isPulledDown) 14.dp else 12.dp
+                            top = 22.dp,
+                            bottom = if (isPulledDown) 10.dp else 12.dp
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -897,14 +897,14 @@ fun AzanHomeContent(
                         onNextDay = { viewModel.nextDay() },
                         onToday = { viewModel.selectToday() },
                         onOpenAdminLogin = onOpenAdminLogin,
-                        scale = 1.0f,
+                        scale = if (isPulledDown) 0.94f else 1.0f,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
 
                 // When home page slides down: show only the highlighted prayer card (AZAN & JAMMAT) matching attached screenshot
                 if (isPulledDown) {
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     val infiniteTransition = rememberInfiniteTransition(label = "pullDownTrimTransition")
                     val flareProgress by infiniteTransition.animateFloat(
@@ -937,7 +937,7 @@ fun AzanHomeContent(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -1034,11 +1034,11 @@ fun AzanHomeContent(
                             jammatTime24 = highlightedInfo.jammatTime,
                             compact = false,
                             textScale = 1.0f,
-                            timeFontSize = 30.sp,
-                            timeSuffixSize = 14.sp,
+                            timeFontSize = 26.sp,
+                            timeSuffixSize = 12.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 10.dp, horizontal = 12.dp)
+                                .padding(vertical = 8.dp, horizontal = 12.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
@@ -1079,7 +1079,7 @@ fun AzanHomeContent(
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = 3.dp)
+                .offset(y = 2.dp)
                 .then(dragGestureModifier),
             contentAlignment = Alignment.Center
         ) {
