@@ -1,0 +1,27 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/.build-outputs
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.env
+debug.keystore
+# Allow distribution apks in apk/ folder
+!apk/
+!apk/*.apk
+!*.apk
+*.ppm
+*.zip
+*.hprof
+*.py
