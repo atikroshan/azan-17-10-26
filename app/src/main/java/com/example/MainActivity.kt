@@ -340,7 +340,7 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
         else -> "Ramazan"
     }
 
-    if (!uiState.isSetupCompleted || showMasjidSelectorScreen) {
+    if (showMasjidSelectorScreen) {
         FirstTimeSetupScreen(
             uiState = uiState,
             onSelectMasjid = { masjid -> viewModel.selectMasjid(masjid.id) },
@@ -348,7 +348,7 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
                 viewModel.completeSetup(masjidId)
                 showMasjidSelectorScreen = false
             },
-            onBack = if (uiState.isSetupCompleted) { { showMasjidSelectorScreen = false } } else null,
+            onBack = { showMasjidSelectorScreen = false },
             onRefresh = { viewModel.syncGoogleSheet() }
         )
     } else if (showAdminPanel) {
@@ -836,7 +836,7 @@ fun AzanHomeContent(
                         .crossfade(true)
                         .build(),
                     contentDescription = "Selected Masjid",
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.Crop,
                     alignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 )
