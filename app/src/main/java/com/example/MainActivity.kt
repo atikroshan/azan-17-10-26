@@ -1103,6 +1103,15 @@ fun AzanHomeContent(
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "v${BuildConfig.VERSION_NAME} • Powered by @tek",
+                        fontSize = 10.sp,
+                        color = Color.White.copy(alpha = 0.4f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp, bottom = 4.dp),
+                        textAlign = TextAlign.Center
+                    )
                 } else {
                     // When pulled up (default): full accordion will show
                     Spacer(modifier = Modifier.height(4.dp))
