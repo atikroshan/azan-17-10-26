@@ -58,8 +58,6 @@ import com.example.data.getLocalizedArea
 import com.example.data.getLocalizedName
 import java.util.Locale
 
-private const val KAABA_BG_URL =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuD6TYjWkZp6_LZHKswlMMD5vxC39ZbF05d_QgMWEV4PRTOct-gagp5BbUxOkxr_ZBGaQHh6euej1VX0n4cVVyyOqqTlqomtxXllJFFdTZ7znUB8T5crJmB6-grdLEQv-HGnBD469f1KaBnqXuvBSjJQtKSXejQWH_XdTYRkO-mQIC9eFYH0d4do--51pjlVSp7Yaynw4seWDkd8Q4ry2IdE8n07gt-Gfvfqs7rnjR2ne0hyPomXh6yAuA"
 
 @Composable
 fun FirstTimeSetupScreen(
@@ -82,14 +80,12 @@ fun FirstTimeSetupScreen(
     var isSearchFocused by remember { mutableStateOf(false) }
 
     // In Change mode: start with currently set masjid.
-    // In First-Time setup: do NOT auto-select any masjid until user actually searches and clicks one!
+    // In First-Time setup: start as null so top card displays Main App Logo until user selects a masjid!
     var userSelectedMasjid by remember(uiState.selectedMasjid, isChangeMode) {
         mutableStateOf(if (isChangeMode) uiState.selectedMasjid else null)
     }
 
     val hasQuery = searchQuery.trim().isNotBlank()
-    // Show photo card only when a masjid is actually chosen by the user (or in change mode)
-    val showMasjidCard = userSelectedMasjid != null
 
     // System Back handling
     BackHandler {
@@ -164,68 +160,49 @@ fun FirstTimeSetupScreen(
             .fillMaxSize()
             .background(Color(0xFF0A0F14))
     ) {
-        // 1. FULL-BLEED KAABA ATMOSPHERIC BACKGROUND (SHOWN ON START PAGE WHEN NO MASJID CARD IS ACTIVE)
-        if (!showMasjidCard) {
-            // High-grade atmospheric gradient overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color(0xFF0A0F14).copy(alpha = 0.88f),
-                                Color(0xFF0A0F14).copy(alpha = 0.72f),
-                                Color(0xFF0A0F14).copy(alpha = 0.94f)
-                            )
-                        )
-                    )
-            )
-        }
-
-        // SCROLLABLE CONTAINER
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val screenHeight = maxHeight
-            // Masjid select karne par photo screen ka 50%
-            val photoHeight = (screenHeight * 0.50f).coerceAtLeast(240.dp)
+            val photoHeight = (screenHeight * 0.48f).coerceIn(250.dp, 380.dp)
 
-            if (showMasjidCard && userSelectedMasjid != null) {
-                // PHOTO CARD SCREEN (Change Mode or Selected Masjid View)
-                val activeMasjid = userSelectedMasjid!!
-                val hasSelectionChanged = activeMasjid.id != uiState.selectedMasjid.id
+            val activeMasjid = userSelectedMasjid
+            val hasSelectionChanged = activeMasjid != null && activeMasjid.id != uiState.selectedMasjid.id
 
-                Column(
+            val cardHeight = if (activeMasjid != null) photoHeight else 320.dp
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // TOP CARD: Main Logo on 1st time before selection, or Masjid Photo when selected
+                Card(
+                    shape = RoundedCornerShape(22.dp),
+                    border = BorderStroke(1.dp, Color(0xFFF2CA50).copy(alpha = 0.35f)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F151C)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                     modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .statusBarsPadding()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .height(cardHeight)
                 ) {
-                    // Top spacing without circular back button
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // LARGE SELECTED MASJID PHOTO CARD (Fills down to search & finish)
-                    Card(
-                        shape = RoundedCornerShape(22.dp),
-                        border = BorderStroke(1.dp, Color(0xFFF2CA50).copy(alpha = 0.35f)),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F151C)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(photoHeight)
-                    ) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            val photoModel = if (activeMasjid.photoUrl.isNotBlank()) activeMasjid.photoUrl else R.drawable.img_makkah_light
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (activeMasjid != null) {
+                            // Selected Masjid Photo
+                            val photoModel = if (activeMasjid.photoUrl.isNotBlank()) activeMasjid.photoUrl else R.drawable.foreground
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
                                     .data(photoModel)
-                                    .error(R.drawable.img_makkah_light)
-                                    .placeholder(R.drawable.img_makkah_light)
+                                    .error(R.drawable.foreground)
+                                    .placeholder(R.drawable.foreground)
                                     .crossfade(true)
                                     .build(),
                                 contentDescription = activeMasjid.name,
-                                contentScale = ContentScale.FillBounds,
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
 
@@ -310,294 +287,224 @@ fun FirstTimeSetupScreen(
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // SEARCH BAR (In Photo Card Screen)
-                    SearchBarContent(
-                        searchQuery = searchQuery,
-                        onSearchQueryChange = {
-                            searchQuery = it
-                            isSearchFocused = true
-                        },
-                        onSearchFocused = { isSearchFocused = true },
-                        onVoiceInput = {
-                            isSearchFocused = true
-                            startVoiceInput()
-                        }
-                    )
-
-                    // SEARCH RESULTS (If query entered)
-                    if (hasQuery) {
-                        Spacer(modifier = Modifier.height(14.dp))
-                        SearchResultsList(
-                            matchedList = matchedList,
-                            searchQuery = searchQuery,
-                            selectedMasjidId = activeMasjid.id,
-                            language = uiState.language,
-                            onSelect = { item -> userSelectedMasjid = item }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // ACTION BUTTONS: CANCEL & FINISH
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (isChangeMode) {
-                            OutlinedButton(
-                                onClick = { onBack?.invoke() },
+                        } else {
+                            // 1st TIME APP INSTALL: Main App Logo (thoda bada) & AZAN TIME Graen Metal Title!
+                            Box(
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                border = BorderStroke(1.dp, Color(0xFF475569)),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = Color(0xFF1E293B).copy(alpha = 0.60f),
-                                    contentColor = Color(0xFFCBD5E1)
-                                )
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.radialGradient(
+                                            colors = listOf(
+                                                Color(0xFF14241C),
+                                                Color(0xFF0F1A15),
+                                                Color(0xFF0A0F14)
+                                            )
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "CANCEL",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    letterSpacing = 0.8.sp
-                                )
-                            }
-                        }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                                ) {
+                                    // Golden Medallion with Main App Logo (thoda bada: 156dp outer, 148dp inner, 10dp padding)
+                                    Box(
+                                        modifier = Modifier.size(156.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Subtle Golden Aura Glow
+                                        Box(
+                                            modifier = Modifier
+                                                .size(180.dp)
+                                                .background(
+                                                    Brush.radialGradient(
+                                                        listOf(
+                                                            Color(0xFFF2CA50).copy(alpha = 0.30f),
+                                                            Color(0xFFC9A741).copy(alpha = 0.12f),
+                                                            Color.Transparent
+                                                        )
+                                                    ),
+                                                    shape = CircleShape
+                                                )
+                                        )
 
-                        val isFinishEnabled = !isChangeMode || hasSelectionChanged
+                                        // Circular Golden Medallion
+                                        Box(
+                                            modifier = Modifier
+                                                .size(148.dp)
+                                                .background(
+                                                    Brush.linearGradient(
+                                                        listOf(Color(0xFF1E3328), Color(0xFF0D1712))
+                                                    ),
+                                                    shape = CircleShape
+                                                )
+                                                .border(
+                                                    BorderStroke(
+                                                        2.5.dp,
+                                                        Brush.verticalGradient(
+                                                            listOf(
+                                                                Color(0xFFF3DE8E),
+                                                                Color(0xFFF2CA50),
+                                                                Color(0xFFB37C3C)
+                                                            )
+                                                        )
+                                                    ),
+                                                    shape = CircleShape
+                                                )
+                                                .padding(10.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            androidx.compose.foundation.Image(
+                                                painter = androidx.compose.ui.res.painterResource(id = R.drawable.foreground),
+                                                contentDescription = "Azan Time Logo",
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    }
 
-                        Button(
-                            onClick = {
-                                onSelectMasjid(activeMasjid)
-                                onFinishSetup(activeMasjid.id)
-                            },
-                            enabled = isFinishEnabled,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isFinishEnabled) Color(0xFFF2CA50) else Color(0xFF1E2836).copy(alpha = 0.50f),
-                                contentColor = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
-                                disabledContainerColor = Color(0xFF1E2836).copy(alpha = 0.50f),
-                                disabledContentColor = Color(0xFF64748B)
-                            ),
-                            shape = RoundedCornerShape(14.dp),
-                            elevation = if (isFinishEnabled) ButtonDefaults.buttonElevation(defaultElevation = 4.dp) else ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                            modifier = Modifier
-                                .weight(if (isChangeMode) 1.25f else 1f)
-                                .height(50.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Finish",
-                                    tint = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
-                                    modifier = Modifier.size(19.dp)
-                                )
-                                Text(
-                                    text = "FINISH",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp
-                                )
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    // AZAN TIME typography with Graen Metal font, golden gradient and shadow (same font as splash screen)
+                                    val goldBrush = remember {
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color(0xFFF3DE8E),
+                                                Color(0xFFF3D66A),
+                                                Color(0xFFB37C3C)
+                                            ),
+                                            startY = 0f,
+                                            endY = 120f
+                                        )
+                                    }
+                                    Text(
+                                        text = "AZAN TIME",
+                                        fontFamily = GraenMetalFontFamily,
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        letterSpacing = 2.sp,
+                                        textAlign = TextAlign.Center,
+                                        style = TextStyle(
+                                            brush = goldBrush,
+                                            shadow = GraenMetalGoldShadow
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            } else {
-                // STARTING PAGE: Clean, Professional, Lifted 25% Up from Bottom
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .statusBarsPadding()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (!hasQuery) {
-                        // Shift matter 10% lower down
-                        Spacer(modifier = Modifier.weight(1f))
-                        Spacer(modifier = Modifier.height((screenHeight * 0.06f)))
-                    } else {
-                        Spacer(modifier = Modifier.height(20.dp))
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // SEARCH BAR
+                SearchBarContent(
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = {
+                        searchQuery = it
+                        isSearchFocused = true
+                    },
+                    onSearchFocused = { isSearchFocused = true },
+                    onVoiceInput = {
+                        isSearchFocused = true
+                        startVoiceInput()
                     }
+                )
 
-                    // Light Glow Crescent Moon with Star
-                    Box(
-                        modifier = Modifier
-                            .padding(bottom = 14.dp)
-                            .size(56.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Canvas(modifier = Modifier.size(46.dp)) {
-                            val r = size.minDimension / 2f
-                            val c = Offset(size.width / 2f, size.height / 2f)
-
-                            // Soft light aura glow
-                            drawCircle(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(
-                                        Color(0xFFF2CA50).copy(alpha = 0.50f),
-                                        Color(0xFFF2CA50).copy(alpha = 0.18f),
-                                        Color.Transparent
-                                    ),
-                                    center = c,
-                                    radius = r * 1.55f
-                                )
-                            )
-
-                            // Crescent moon
-                            val moonPath = Path().apply {
-                                addOval(Rect(center = c, radius = r * 0.95f))
-                                val cutCenter = Offset(c.x + r * 0.44f, c.y - r * 0.28f)
-                                val cutPath = Path().apply {
-                                    addOval(Rect(center = cutCenter, radius = r * 0.86f))
-                                }
-                                op(this, cutPath, PathOperation.Difference)
-                            }
-
-                            drawPath(
-                                path = moonPath,
-                                brush = Brush.linearGradient(
-                                    listOf(
-                                        Color(0xFFFFFBE8),
-                                        Color(0xFFF2CA50),
-                                        Color(0xFFD4AF37)
-                                    )
-                                )
-                            )
-
-                            // Sparkling Star near Crescent Moon
-                            val starCenter = Offset(c.x + r * 0.36f, c.y - r * 0.28f)
-                            drawCircle(
-                                color = Color(0xFFFFFCE8),
-                                radius = 2.8.dp.toPx(),
-                                center = starCenter
-                            )
-                        }
-                    }
-
-                    // 1. Arabic Greeting
-                    Text(
-                        text = "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ ٱللَّهِ وَبَرَكَاتُهُ",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE5C158),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 28.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // 2. English Greeting
-                    Text(
-                        text = "Assalamu Alaikum",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // 3. Hindi Greeting
-                    Text(
-                        text = "अस्सलाम वालेकुम",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFD5DDE5),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Text(
-                        text = "Welcome to",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFFE1C561).copy(alpha = 0.90f),
-                        letterSpacing = 1.5.sp,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    // Heavy Bold AZAN TIME in Graen Metal Font
-                    Text(
-                        text = "AZAN TIME",
-                        fontFamily = GraenMetalFontFamily,
-                        fontSize = 42.sp,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 2.sp,
-                        style = TextStyle(
-                            brush = GraenMetalGoldGradient,
-                            shadow = GraenMetalGoldShadow
-                        ),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Punch line under AZAN TIME
-                    Text(
-                        text = "Connect with your Masjid • Never miss a Jama'at",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFFF2CA50).copy(alpha = 0.90f),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // SEARCH BAR
-                    SearchBarContent(
+                // SEARCH RESULTS (If query entered)
+                if (hasQuery) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    SearchResultsList(
+                        matchedList = matchedList,
                         searchQuery = searchQuery,
-                        onSearchQueryChange = {
-                            searchQuery = it
-                            isSearchFocused = true
+                        selectedMasjidId = activeMasjid?.id,
+                        language = uiState.language,
+                        onSelect = { item -> userSelectedMasjid = item }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // ACTION BUTTONS: CANCEL & FINISH
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // CANCEL BUTTON (Always present as requested: "search bar cancel")
+                    OutlinedButton(
+                        onClick = {
+                            if (onBack != null) {
+                                onBack()
+                            } else {
+                                // On 1st time install, CANCEL proceeds directly with default masjid
+                                onFinishSetup(uiState.selectedMasjid.id)
+                            }
                         },
-                        onSearchFocused = { isSearchFocused = true },
-                        onVoiceInput = {
-                            isSearchFocused = true
-                            startVoiceInput()
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Find and select line directly below search bar
-                    Text(
-                        text = "Find and select your local Masjid to get started",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color(0xFF94A3B8),
-                        textAlign = TextAlign.Center
-                    )
-
-                    // Results list when searching on start page
-                    if (hasQuery) {
-                        Spacer(modifier = Modifier.height(14.dp))
-                        SearchResultsList(
-                            matchedList = matchedList,
-                            searchQuery = searchQuery,
-                            selectedMasjidId = null,
-                            language = uiState.language,
-                            onSelect = { item -> userSelectedMasjid = item }
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, Color(0xFF475569)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color(0xFF1E293B).copy(alpha = 0.60f),
+                            contentColor = Color(0xFFCBD5E1)
                         )
-                        Spacer(modifier = Modifier.height(24.dp))
-                    } else {
-                        // 15% bottom space (10% lower than previous 25%)
-                        Spacer(modifier = Modifier.height((screenHeight * 0.15f).coerceAtLeast(40.dp)))
+                    ) {
+                        Text(
+                            text = "CANCEL",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.8.sp
+                        )
+                    }
+
+                    // FINISH BUTTON
+                    val isFinishEnabled = !isChangeMode || hasSelectionChanged || activeMasjid != null
+                    Button(
+                        onClick = {
+                            val chosen = activeMasjid ?: uiState.selectedMasjid
+                            onSelectMasjid(chosen)
+                            onFinishSetup(chosen.id)
+                        },
+                        enabled = isFinishEnabled,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isFinishEnabled) Color(0xFFF2CA50) else Color(0xFF1E2836).copy(alpha = 0.50f),
+                            contentColor = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
+                            disabledContainerColor = Color(0xFF1E2836).copy(alpha = 0.50f),
+                            disabledContentColor = Color(0xFF64748B)
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        elevation = if (isFinishEnabled) ButtonDefaults.buttonElevation(defaultElevation = 4.dp) else ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                        modifier = Modifier
+                            .weight(1.25f)
+                            .height(50.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Finish",
+                                tint = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
+                                modifier = Modifier.size(19.dp)
+                            )
+                            Text(
+                                text = "FINISH",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
                 }
             }

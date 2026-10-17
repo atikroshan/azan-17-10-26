@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.ui.SplashScreen
+import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.ui.FirstTimeSetupScreen
 import com.example.data.GoogleSheetMasjidSync
@@ -656,6 +657,7 @@ fun AzanHomeContent(
 
         var isPulledDown by rememberSaveable { mutableStateOf(true) }
         val sheetOffsetY = remember { Animatable(if (isPulledDown) maxPullDownPx else 0f) }
+        val isPlayingAzan by com.example.service.AzanForegroundService.isPlayingAzan.collectAsState()
 
         LaunchedEffect(isPulledDown, maxPullDownPx) {
             val target = if (isPulledDown) maxPullDownPx else 0f
@@ -795,10 +797,50 @@ fun AzanHomeContent(
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
         ) {
-            val homePhoto = if (photoUrl.isNotBlank()) photoUrl else R.drawable.img_makkah_light
+            val homePhoto = if (photoUrl.isNotBlank()) photoUrl else R.drawable.foreground
             var langRowHeightPx by remember { mutableIntStateOf(0) }
             val langRowHeightDp = with(density) { langRowHeightPx.toDp() }
-            val photoTopPadding = if (langRowHeightDp > 0.dp) langRowHeightDp + 20.dp else 65.dp
+            val photoTopPadding = if (langRowHeightDp > 0.dp) langRowHeightDp + 16.dp else 60.dp
+
+            val availablePhotoHeight = (targetCollapsedTopDp - photoTopPadding + 20.dp).coerceAtLeast(180.dp)
+
+            // Centered photo container displaying 100% full original image across all screen heights
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = photoTopPadding)
+                    .height(availablePhotoHeight),
+                contentAlignment = Alignment.Center
+            ) {
+                // Subtle ambient background fill for wide/square letterboxed margins
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(homePhoto)
+                        .error(R.drawable.foreground)
+                        .placeholder(R.drawable.foreground)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.18f)
+                )
+
+                // Crisp, 100% full original mosque photo (unclipped, no harsh middle fade)
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(homePhoto)
+                        .error(R.drawable.foreground)
+                        .placeholder(R.drawable.foreground)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Selected Masjid",
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             LanguageCirclesRow(
                 currentLang = uiState.language,
@@ -806,44 +848,6 @@ fun AzanHomeContent(
                 modifier = Modifier
                     .padding(start = 16.dp, end = 16.dp, top = 5.dp, bottom = 0.dp)
                     .onSizeChanged { langRowHeightPx = it.height }
-            )
-
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(homePhoto)
-                    .error(R.drawable.img_makkah_light)
-                    .placeholder(R.drawable.img_makkah_light)
-                    .crossfade(false)
-                    .build(),
-                contentDescription = "Selected Masjid",
-                contentScale = ContentScale.FillWidth,
-                alignment = Alignment.TopCenter,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = photoTopPadding)
-                    .wrapContentHeight()
-                    .heightIn(max = targetCollapsedTopDp + 10.dp)
-                    .graphicsLayer {
-                        compositingStrategy = CompositingStrategy.Offscreen
-                    }
-                    .drawWithContent {
-                        drawContent()
-
-                        // Ultra-smooth transparent fade effect at bottom of photo (no harsh cut, natural feathering)
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                0.00f to Color.White,
-                                0.45f to Color.White,
-                                0.60f to Color.White.copy(alpha = 0.95f),
-                                0.72f to Color.White.copy(alpha = 0.80f),
-                                0.82f to Color.White.copy(alpha = 0.55f),
-                                0.90f to Color.White.copy(alpha = 0.30f),
-                                0.96f to Color.White.copy(alpha = 0.10f),
-                                1.00f to Color.Transparent
-                            ),
-                            blendMode = BlendMode.DstIn
-                        )
-                    }
             )
         }
 
@@ -902,8 +906,65 @@ fun AzanHomeContent(
                     )
                 }
 
-                // When home page slides down: show only the highlighted prayer card (AZAN & JAMMAT) matching attached screenshot
+                // When home page slides down: show Stop button if Azan is playing, and highlighted prayer card (AZAN & JAMMAT)
                 if (isPulledDown) {
+                    if (isPlayingAzan) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp, vertical = 4.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Color(0xFFEAB308))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.VolumeUp,
+                                        contentDescription = "Azan Playing",
+                                        tint = Color(0xFFEAB308),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = "Azan Playing",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = "Playing once • Auto closing",
+                                            fontSize = 10.sp,
+                                            color = Color.White.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                }
+                                Button(
+                                    onClick = {
+                                        com.example.service.AzanForegroundService.stopService(context)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFDC2626),
+                                        contentColor = Color.White
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(4.dp))
 
                     val infiniteTransition = rememberInfiniteTransition(label = "pullDownTrimTransition")

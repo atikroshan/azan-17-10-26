@@ -33,7 +33,7 @@ class PreferencesRepository(private val context: Context) {
     }
 
     val isSetupCompletedFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_SETUP_COMPLETED] ?: true
+        prefs[KEY_SETUP_COMPLETED] ?: false
     }
 
     suspend fun setSetupCompleted(completed: Boolean) {

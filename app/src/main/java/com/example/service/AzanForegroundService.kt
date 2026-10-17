@@ -206,22 +206,66 @@ class AzanForegroundService : Service() {
         }
         mediaPlayer = null
 
+        // Ensure alarm stream volume is audible so Azan sound is clearly heard
         try {
-            val player = MediaPlayer()
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+            if (audioManager != null) {
+                val currentVol = audioManager.getStreamVolume(android.media.AudioManager.STREAM_ALARM)
+                val maxVol = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
+                if (currentVol == 0 || currentVol < (maxVol * 0.4f)) {
+                    val targetVol = (maxVol * 0.8f).toInt().coerceAtLeast(1)
+                    audioManager.setStreamVolume(android.media.AudioManager.STREAM_ALARM, targetVol, 0)
+                }
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+
+        try {
             val audioAttributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                 .build()
-            player.setAudioAttributes(audioAttributes)
 
-            val resId = R.raw.azan
-            val afd = resources.openRawResourceFd(resId)
-            player.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-            afd.close()
-            player.prepare()
+            var player: MediaPlayer? = null
+
+            // Tier 1: Try MediaPlayer.create with USAGE_ALARM
+            try {
+                player = MediaPlayer.create(applicationContext, R.raw.azan, audioAttributes, 0)
+            } catch (e: Throwable) {
+                android.util.Log.w("AzanForegroundService", "Tier 1 MediaPlayer.create failed: ${e.message}")
+            }
+
+            // Tier 2: Open raw resource file descriptor and prepare properly before closing FD
+            if (player == null) {
+                try {
+                    val afd = resources.openRawResourceFd(R.raw.azan)
+                    if (afd != null) {
+                        val p = MediaPlayer()
+                        p.setAudioAttributes(audioAttributes)
+                        p.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                        p.prepare()
+                        afd.close()
+                        player = p
+                    }
+                } catch (e: Throwable) {
+                    android.util.Log.w("AzanForegroundService", "Tier 2 setDataSource failed: ${e.message}")
+                }
+            }
+
+            // Tier 3: Standard MediaPlayer.create fallback
+            if (player == null) {
+                try {
+                    player = MediaPlayer.create(applicationContext, R.raw.azan)
+                } catch (e: Throwable) {
+                    android.util.Log.w("AzanForegroundService", "Tier 3 default create failed: ${e.message}")
+                }
+            }
+
             mediaPlayer = player
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("AzanForegroundService", "Error initializing MediaPlayer for Azan", e)
             mediaPlayer = null
         }
 
@@ -235,21 +279,25 @@ class AzanForegroundService : Service() {
             isPlayingAzan.value = true
 
             player.setOnCompletionListener {
+                android.util.Log.d("AzanForegroundService", "Azan audio playback completed")
                 stopAzanAudio()
             }
 
-            player.setOnErrorListener { _, _, _ ->
+            player.setOnErrorListener { _, what, extra ->
+                android.util.Log.e("AzanForegroundService", "MediaPlayer error: what=$what, extra=$extra")
                 stopAzanAudio()
                 true
             }
 
             try {
                 player.start()
+                android.util.Log.d("AzanForegroundService", "Azan audio playback started successfully")
             } catch (e: Exception) {
-                e.printStackTrace()
+                android.util.Log.e("AzanForegroundService", "Failed to start MediaPlayer", e)
                 stopAzanAudio()
             }
         } ?: run {
+            android.util.Log.e("AzanForegroundService", "MediaPlayer is null, cannot play Azan audio")
             stopAzanAudio()
         }
     }
