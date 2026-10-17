@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.ui.SplashScreen
+
 import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.ui.FirstTimeSetupScreen
@@ -219,8 +220,6 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val isAlarmIntent = intent.getBooleanExtra("FROM_ALARM", false)
-                var showSplashScreen by remember(uiState.splashShown) { mutableStateOf(!isAlarmIntent && !uiState.splashShown) }
-
                 // Lock fontScale to 1.0f to guarantee exact, identical typography rendering across all mobile devices
                 val currentDensity = LocalDensity.current
                 val fixedDensity = remember(currentDensity.density) {
@@ -234,6 +233,8 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides fixedDensity,
                     LocalAppStrings provides strings
                 ) {
+                    var showSplashScreen by remember(uiState.splashShown) { mutableStateOf(!isAlarmIntent && !uiState.splashShown) }
+
                     AnimatedVisibility(
                         visible = showSplashScreen,
                         enter = fadeIn(tween(200)),
@@ -264,6 +265,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
 
     override fun onNewIntent(intent: Intent) {
