@@ -123,36 +123,36 @@ fun SplashScreen(
         coroutineScope.launch {
             if (masterScale.value > 1.2f) return@launch // Already exiting
             if (fast) {
-                launch { masterScale.animateTo(18f, tween(700, easing = CubicBezierEasing(0.68f, -0.05f, 0.85f, 0.05f))) }
-                launch { masterAlpha.animateTo(0f, tween(600, easing = FastOutSlowInEasing)) }
-                delay(650)
+                launch { masterScale.animateTo(18f, tween(800, easing = CubicBezierEasing(0.68f, -0.05f, 0.85f, 0.05f))) }
+                launch { masterAlpha.animateTo(0f, tween(700, easing = FastOutSlowInEasing)) }
+                delay(750)
                 currentOnFinished()
             } else {
-                launch { masterScale.animateTo(1.06f, tween(250, easing = FastOutSlowInEasing)) }
-                delay(220)
-                launch { masterScale.animateTo(18f, tween(1000, easing = CubicBezierEasing(0.68f, -0.05f, 0.85f, 0.05f))) }
-                launch { masterAlpha.animateTo(0f, tween(850, easing = FastOutSlowInEasing)) }
-                delay(950)
+                launch { masterScale.animateTo(1.08f, tween(350, easing = FastOutSlowInEasing)) }
+                delay(300)
+                launch { masterScale.animateTo(18f, tween(1200, easing = CubicBezierEasing(0.68f, -0.05f, 0.85f, 0.05f))) }
+                launch { masterAlpha.animateTo(0f, tween(1000, easing = FastOutSlowInEasing)) }
+                delay(1100)
                 currentOnFinished()
             }
         }
     }
 
     LaunchedEffect(Unit) {
-        // Step 1: Bounce in Medallion (0 - 1.1s)
+        // Step 1: Smooth bounce in Medallion (0 - 1.5s)
         launch {
-            medallionAlpha.animateTo(1f, tween(400, easing = FastOutSlowInEasing))
+            medallionAlpha.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
         }
         launch {
             medallionOffsetY.animateTo(
                 targetValue = 0f,
                 animationSpec = keyframes {
-                    durationMillis = 1100
-                    40f at 0
-                    -8f at 550 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
-                    3f at 770
-                    -1f at 935
-                    0f at 1100
+                    durationMillis = 1500
+                    50f at 0
+                    -10f at 700 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
+                    4f at 1050
+                    -2f at 1300
+                    0f at 1500
                 }
             )
         }
@@ -160,27 +160,27 @@ fun SplashScreen(
             medallionScale.animateTo(
                 targetValue = 1f,
                 animationSpec = keyframes {
-                    durationMillis = 1100
-                    0.25f at 0
-                    1.1f at 550 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
-                    0.96f at 770
-                    1.02f at 935
-                    1.0f at 1100
+                    durationMillis = 1500
+                    0.2f at 0
+                    1.12f at 700 using CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
+                    0.95f at 1050
+                    1.03f at 1300
+                    1.0f at 1500
                 }
             )
         }
 
-        // Step 2: Slide up Title & Punchline (starts at 450ms)
-        delay(450)
+        // Step 2: Slide up Title & Punchline (starts at 600ms)
+        delay(600)
         launch {
-            textAlpha.animateTo(1f, tween(750, easing = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)))
+            textAlpha.animateTo(1f, tween(900, easing = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)))
         }
         launch {
-            textOffsetY.animateTo(0f, tween(850, easing = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)))
+            textOffsetY.animateTo(0f, tween(1000, easing = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)))
         }
 
-        // Step 3: Wait until 3.3s then trigger Zoom-Out Disappear Transition
-        delay(2850) // Total ~3.3s
+        // Step 3: Wait until ~4.5s then trigger Zoom-Out Disappear Transition
+        delay(3900)
         startExitSequence(fast = false)
     }
 
