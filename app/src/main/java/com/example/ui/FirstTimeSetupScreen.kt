@@ -468,7 +468,7 @@ fun FirstTimeSetupScreen(
                     }
 
                     // FINISH BUTTON
-                    val isFinishEnabled = !isChangeMode || hasSelectionChanged || activeMasjid != null
+                    val isFinishEnabled = activeMasjid != null
                     Button(
                         onClick = {
                             val chosen = activeMasjid ?: uiState.selectedMasjid
