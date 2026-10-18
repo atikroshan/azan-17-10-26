@@ -14,6 +14,8 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.IBinder
+import android.telephony.TelephonyCallback
+import android.telephony.TelephonyManager
 import androidx.core.app.NotificationCompat
 import com.example.MainActivity
 import com.example.R
@@ -22,6 +24,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class AzanForegroundService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var wakeLock: android.os.PowerManager.WakeLock? = null
+    private var telephonyManager: TelephonyManager? = null
+    private var phoneStateListener: TelephonyCallback? = null
 
     companion object {
         var serviceInstance: AzanForegroundService? = null
@@ -88,6 +92,39 @@ class AzanForegroundService : Service() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        setupCallListener()
+    }
+
+    private fun setupCallListener() {
+        try {
+            telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                phoneStateListener = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
+                    override fun onCallStateChanged(state: Int) {
+                        if (state != TelephonyManager.CALL_STATE_IDLE) {
+                            // Call active, pause or stop
+                            stopAzanAudio()
+                        }
+                    }
+                }
+                telephonyManager?.registerTelephonyCallback(mainExecutor, phoneStateListener as TelephonyCallback)
+            } else {
+                @Suppress("DEPRECATION")
+                telephonyManager?.listen(object : android.telephony.PhoneStateListener() {
+                    override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                        if (state != TelephonyManager.CALL_STATE_IDLE) {
+                            stopAzanAudio()
+                        }
+                    }
+                }, android.telephony.PhoneStateListener.LISTEN_CALL_STATE)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -160,7 +197,9 @@ class AzanForegroundService : Service() {
             e.printStackTrace()
         }
 
-        playAzan()
+        if (!isPlayingAzan.value) {
+            playAzan()
+        }
 
         return START_NOT_STICKY
     }
@@ -208,6 +247,13 @@ class AzanForegroundService : Service() {
         mediaPlayer = null
 
         // Removed volume override to keep original system volume
+        
+        val audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        if (audioManager?.ringerMode != AudioManager.RINGER_MODE_NORMAL) {
+            android.util.Log.d("AzanForegroundService", "Device is in silent or vibrate mode, skipping audio.")
+            stopAzanAudio()
+            return
+        }
 
         try {
             val audioAttributes = AudioAttributes.Builder()

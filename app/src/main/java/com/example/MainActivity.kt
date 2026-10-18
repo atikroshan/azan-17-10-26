@@ -181,6 +181,12 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            splashScreen.setOnExitAnimationListener { splashScreenView ->
+                splashScreenView.remove()
+            }
+        }
+
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
@@ -453,7 +459,8 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
                             viewModel = viewModel,
                             uiState = uiState,
                             onOpenAdminLogin = { showAdminLoginDialog = true },
-                            onChangeMasjid = { showMasjidSelectorScreen = true }
+                            onChangeMasjid = { showMasjidSelectorScreen = true },
+                            onShowAdminPanel = { showAdminPanel = it }
                         )
                     }
                 }
@@ -611,6 +618,7 @@ fun AzanHomeContent(
     uiState: com.example.ui.UIState,
     onOpenAdminLogin: () -> Unit = {},
     onChangeMasjid: () -> Unit = {},
+    onShowAdminPanel: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -645,7 +653,9 @@ fun AzanHomeContent(
         LaunchedEffect(isPulledDown, maxPullDownPx) {
             val target = if (isPulledDown) maxPullDownPx else 0f
             if (sheetOffsetY.value != target) {
-                if (kotlin.math.abs(sheetOffsetY.value - target) > 40f && !sheetOffsetY.isRunning) {
+                if (sheetOffsetY.value == 0f && isPulledDown) {
+                    sheetOffsetY.snapTo(target)
+                } else if (kotlin.math.abs(sheetOffsetY.value - target) > 40f && !sheetOffsetY.isRunning) {
                     sheetOffsetY.animateTo(
                         targetValue = target,
                         animationSpec = spring(
@@ -780,7 +790,7 @@ fun AzanHomeContent(
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
         ) {
-            val homePhoto = if (photoUrl.isNotBlank()) photoUrl else R.drawable.foreground
+            val homePhoto = if (photoUrl.isNotBlank()) photoUrl else R.drawable.img_makkah_light
             var langRowHeightPx by remember { mutableIntStateOf(0) }
             val langRowHeightDp = with(density) { langRowHeightPx.toDp() }
             val photoTopPadding = if (langRowHeightDp > 0.dp) langRowHeightDp + 16.dp else 60.dp
@@ -799,9 +809,8 @@ fun AzanHomeContent(
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(homePhoto)
-                        .error(R.drawable.foreground)
-                        .placeholder(R.drawable.foreground)
-                        .crossfade(true)
+                        .error(R.drawable.img_makkah_light)
+                        .crossfade(false)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -814,9 +823,8 @@ fun AzanHomeContent(
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(homePhoto)
-                        .error(R.drawable.foreground)
-                        .placeholder(R.drawable.foreground)
-                        .crossfade(true)
+                        .error(R.drawable.img_makkah_light)
+                        .crossfade(false)
                         .build(),
                     contentDescription = "Selected Masjid",
                     contentScale = ContentScale.Crop,
@@ -838,19 +846,40 @@ fun AzanHomeContent(
                     onLangSelect = { viewModel.setLanguage(it) }
                 )
 
-                if (isPlayingAzan) {
-                    Button(
-                        onClick = {
-                            com.example.service.AzanForegroundService.stopService(context)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFDC2626),
-                            contentColor = Color.White
-                        ),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                        shape = RoundedCornerShape(8.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (isPlayingAzan) {
+                        Button(
+                            onClick = {
+                                com.example.service.AzanForegroundService.stopService(context)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFDC2626),
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+
+                    // Admin icon button (Profile/Avatar)
+                    IconButton(
+                        onClick = { onShowAdminPanel(true) },
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF3DE8E))
                     ) {
-                        Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Admin Profile",
+                            tint = Color.Black,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
                 }
             }
@@ -1042,11 +1071,11 @@ fun AzanHomeContent(
                             jammatTime24 = highlightedInfo.jammatTime,
                             compact = false,
                             textScale = 1.0f,
-                            timeFontSize = 26.sp,
-                            timeSuffixSize = 12.sp,
+                            timeFontSize = 52.sp,
+                            timeSuffixSize = 16.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp, horizontal = 12.dp)
+                                .padding(vertical = 12.dp, horizontal = 12.dp)
                         )
                     }
 
