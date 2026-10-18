@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.Build
@@ -206,20 +207,7 @@ class AzanForegroundService : Service() {
         }
         mediaPlayer = null
 
-        // Ensure alarm stream volume is audible so Azan sound is clearly heard
-        try {
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
-            if (audioManager != null) {
-                val currentVol = audioManager.getStreamVolume(android.media.AudioManager.STREAM_ALARM)
-                val maxVol = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
-                if (currentVol == 0 || currentVol < (maxVol * 0.4f)) {
-                    val targetVol = (maxVol * 0.8f).toInt().coerceAtLeast(1)
-                    audioManager.setStreamVolume(android.media.AudioManager.STREAM_ALARM, targetVol, 0)
-                }
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
+        // Removed volume override to keep original system volume
 
         try {
             val audioAttributes = AudioAttributes.Builder()
@@ -269,9 +257,24 @@ class AzanForegroundService : Service() {
             mediaPlayer = null
         }
 
+        try {
+            val audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+            audioManager?.let { am ->
+                val maxAlarmVol = am.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+                am.setStreamVolume(AudioManager.STREAM_ALARM, maxAlarmVol, 0)
+            }
+        } catch (e: Throwable) {
+            android.util.Log.w("AzanForegroundService", "Could not set alarm stream volume: ${e.message}")
+        }
+
         mediaPlayer?.let { player ->
             try {
                 player.setWakeMode(applicationContext, android.os.PowerManager.PARTIAL_WAKE_LOCK)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            try {
+                player.setVolume(1.0f, 1.0f)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

@@ -12,7 +12,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import com.example.ui.SplashScreen
 
 import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,10 +20,13 @@ import com.example.data.GoogleSheetMasjidSync
 import com.example.util.AppUpdateManager
 import com.example.util.UpdateInfo
 import com.example.ui.UpdateDialog
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateFloatAsState
@@ -233,33 +235,12 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides fixedDensity,
                     LocalAppStrings provides strings
                 ) {
-                    var showSplashScreen by remember(uiState.splashShown) { mutableStateOf(!isAlarmIntent && !uiState.splashShown) }
-
-                    AnimatedVisibility(
-                        visible = showSplashScreen,
-                        enter = fadeIn(tween(200)),
-                        exit = fadeOut(tween(400))
-                    ) {
-                        SplashScreen(
-                            onSplashFinished = {
-                                viewModel.setSplashShown(true)
-                                showSplashScreen = false
-                            }
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        AzanScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            modifier = Modifier.padding(innerPadding)
                         )
-                    }
-
-                    AnimatedVisibility(
-                        visible = !showSplashScreen,
-                        enter = fadeIn(tween(400)),
-                        exit = fadeOut(tween(200))
-                    ) {
-                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                            AzanScreen(
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                modifier = Modifier.padding(innerPadding)
-                            )
-                        }
                     }
                 }
             }
@@ -844,13 +825,35 @@ fun AzanHomeContent(
                 )
             }
 
-            LanguageCirclesRow(
-                currentLang = uiState.language,
-                onLangSelect = { viewModel.setLanguage(it) },
+            Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 5.dp, bottom = 0.dp)
-                    .onSizeChanged { langRowHeightPx = it.height }
-            )
+                    .onSizeChanged { langRowHeightPx = it.height },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LanguageCirclesRow(
+                    currentLang = uiState.language,
+                    onLangSelect = { viewModel.setLanguage(it) }
+                )
+
+                if (isPlayingAzan) {
+                    Button(
+                        onClick = {
+                            com.example.service.AzanForegroundService.stopService(context)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFDC2626),
+                            contentColor = Color.White
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
+            }
         }
 
         // --- FRONT SCREEN (screen over screen: part from time till the bottom) ---
@@ -908,66 +911,8 @@ fun AzanHomeContent(
                     )
                 }
 
-                // When home page slides down: show Stop button if Azan is playing, and highlighted prayer card (AZAN & JAMMAT)
                 if (isPulledDown) {
-                    if (isPlayingAzan) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp, vertical = 4.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color(0xFFEAB308))
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.VolumeUp,
-                                        contentDescription = "Azan Playing",
-                                        tint = Color(0xFFEAB308),
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                    Column {
-                                        Text(
-                                            text = "Azan Playing",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = "Playing once • Auto closing",
-                                            fontSize = 10.sp,
-                                            color = Color.White.copy(alpha = 0.7f)
-                                        )
-                                    }
-                                }
-                                Button(
-                                    onClick = {
-                                        com.example.service.AzanForegroundService.stopService(context)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFDC2626),
-                                        contentColor = Color.White
-                                    ),
-                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     val infiniteTransition = rememberInfiniteTransition(label = "pullDownTrimTransition")
                     val flareProgress by infiniteTransition.animateFloat(
@@ -1000,7 +945,7 @@ fun AzanHomeContent(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -1104,14 +1049,16 @@ fun AzanHomeContent(
                                 .padding(vertical = 8.dp, horizontal = 12.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} • Powered by @tek",
                         fontSize = 10.sp,
                         color = Color.White.copy(alpha = 0.4f),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 4.dp, bottom = 4.dp),
+                            .padding(top = 2.dp, bottom = 2.dp),
                         textAlign = TextAlign.Center
                     )
                 } else {
@@ -1120,7 +1067,6 @@ fun AzanHomeContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
@@ -1147,35 +1093,31 @@ fun AzanHomeContent(
             }
         }
 
-        // Absolute positioning fix for the drag handle: drawn on top of the sheet's top boundary
-        Box(
+        // Absolute positioning for the drag handle: drawn right on top of the sheet's top boundary
+        SlidingArrowHandle(
+            isPulledDown = isPulledDown,
+            scale = 1.0f,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = 2.dp)
                 .then(dragGestureModifier),
-            contentAlignment = Alignment.Center
-        ) {
-            SlidingArrowHandle(
-                isPulledDown = isPulledDown,
-                scale = 1.0f,
-                onClick = {
-                    coroutineScope.launch {
-                        val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
-                        isPulledDown = (target > 0f)
-                        sheetOffsetY.animateTo(
-                            targetValue = target,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
-                            )
+            onClick = {
+                coroutineScope.launch {
+                    val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
+                    isPulledDown = (target > 0f)
+                    sheetOffsetY.animateTo(
+                        targetValue = target,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
                         )
-                    }
+                    )
                 }
-            )
-        }
+            }
+        )
     }
 }
 }
+
 
 
 @Composable
