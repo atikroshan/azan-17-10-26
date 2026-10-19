@@ -655,12 +655,12 @@ fun AzanHomeContent(
             if (sheetOffsetY.value != target) {
                 if (sheetOffsetY.value == 0f && isPulledDown) {
                     sheetOffsetY.snapTo(target)
-                } else if (kotlin.math.abs(sheetOffsetY.value - target) > 40f && !sheetOffsetY.isRunning) {
+                } else if (!sheetOffsetY.isRunning) {
                     sheetOffsetY.animateTo(
                         targetValue = target,
                         animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessMediumLow
                         )
                     )
                 } else {
@@ -708,15 +708,21 @@ fun AzanHomeContent(
                         sheetOffsetY.animateTo(
                             targetValue = target,
                             animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
                             )
                         )
                     }
                 },
                 onDragCancel = {
                     coroutineScope.launch {
-                        sheetOffsetY.animateTo(if (isPulledDown) maxPullDownPx else 0f)
+                        sheetOffsetY.animateTo(
+                            targetValue = if (isPulledDown) maxPullDownPx else 0f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        )
                     }
                 },
                 onVerticalDrag = { change, dragAmount ->
@@ -839,7 +845,7 @@ fun AzanHomeContent(
                     .padding(start = 16.dp, end = 16.dp, top = 5.dp, bottom = 0.dp)
                     .onSizeChanged { langRowHeightPx = it.height },
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Bottom
             ) {
                 LanguageCirclesRow(
                     currentLang = uiState.language,
@@ -868,7 +874,7 @@ fun AzanHomeContent(
 
                     // Admin icon button (Profile/Avatar)
                     IconButton(
-                        onClick = { onShowAdminPanel(true) },
+                        onClick = { onOpenAdminLogin() },
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
@@ -1581,33 +1587,6 @@ fun ClockDisplay(
                         fontSize = (14f * scale).sp,
                         fontWeight = FontWeight.Bold,
                         color = TextColor
-                    )
-                }
-                Spacer(modifier = Modifier.width((14f * scale).dp))
-                Box(
-                    modifier = Modifier
-                        .offset(y = (-3).dp)
-                        .clip(RoundedCornerShape((6f * scale).dp))
-                        .clickable { onOpenAdminLogin() }
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                listOf(Color(0xFF1E293B), Color(0xFF0F172A))
-                            )
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                            shape = RoundedCornerShape((6f * scale).dp)
-                        )
-                        .padding(horizontal = (8f * scale).dp, vertical = (4f * scale).dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "IST",
-                        fontSize = (11f * scale).sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.secondary,
-                        letterSpacing = 1.sp
                     )
                 }
             }
