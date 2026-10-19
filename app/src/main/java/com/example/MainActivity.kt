@@ -632,16 +632,20 @@ fun AzanHomeContent(
         val coroutineScope = rememberCoroutineScope()
 
         val baseTopPadding = 205.dp
-        val navGap = 16.dp
-        val collapsedSheetHeight = 280.dp
-        val collapsedSheetHeightPx = with(density) { collapsedSheetHeight.toPx() }
-
+        val navGap = 2.dp
+        val navGapPx = with(density) { navGap.toPx() }
         val screenHeightPx = with(density) { screenHeight.toPx() }
         val baseTopPaddingPx = with(density) { baseTopPadding.toPx() }
-        val navGapPx = with(density) { navGap.toPx() }
 
-        // When slid down: highlighted slot and content section collapse down leaving clean 16dp gap above navigation bar
-        val targetCollapsedTopPx = (screenHeightPx - navGapPx - collapsedSheetHeightPx).coerceAtLeast(baseTopPaddingPx)
+        var sheetContentHeightPx by remember { mutableIntStateOf(0) }
+        val effectiveCollapsedSheetHeightPx = if (sheetContentHeightPx > 0) {
+            sheetContentHeightPx.toFloat()
+        } else {
+            with(density) { 260.dp.toPx() }
+        }
+
+        // When slid down: highlighted slot and content section collapse down leaving a minimal clean 2dp gap above navigation bar
+        val targetCollapsedTopPx = (screenHeightPx - navGapPx - effectiveCollapsedSheetHeightPx).coerceAtLeast(baseTopPaddingPx)
         val maxPullDownPx = (targetCollapsedTopPx - baseTopPaddingPx).coerceAtLeast(0f)
         val maxPullDownDistance = with(density) { maxPullDownPx.toDp() }
         val targetCollapsedTopDp = with(density) { targetCollapsedTopPx.toDp() }
@@ -652,19 +656,17 @@ fun AzanHomeContent(
 
         LaunchedEffect(isPulledDown, maxPullDownPx) {
             val target = if (isPulledDown) maxPullDownPx else 0f
-            if (sheetOffsetY.value != target) {
+            if (kotlin.math.abs(sheetOffsetY.value - target) > 1f) {
                 if (sheetOffsetY.value == 0f && isPulledDown) {
                     sheetOffsetY.snapTo(target)
-                } else if (!sheetOffsetY.isRunning) {
+                } else {
                     sheetOffsetY.animateTo(
                         targetValue = target,
                         animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            dampingRatio = Spring.DampingRatioNoBouncy,
                             stiffness = Spring.StiffnessMediumLow
                         )
                     )
-                } else {
-                    sheetOffsetY.snapTo(target)
                 }
             }
         }
@@ -708,7 +710,7 @@ fun AzanHomeContent(
                         sheetOffsetY.animateTo(
                             targetValue = target,
                             animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                dampingRatio = Spring.DampingRatioNoBouncy,
                                 stiffness = Spring.StiffnessMediumLow
                             )
                         )
@@ -719,7 +721,7 @@ fun AzanHomeContent(
                         sheetOffsetY.animateTo(
                             targetValue = if (isPulledDown) maxPullDownPx else 0f,
                             animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                dampingRatio = Spring.DampingRatioNoBouncy,
                                 stiffness = Spring.StiffnessMediumLow
                             )
                         )
@@ -771,7 +773,7 @@ fun AzanHomeContent(
                 }
 
                 override suspend fun onPreFling(available: Velocity): Velocity {
-                    val target = if (sheetOffsetY.value > maxPullDownPx * 0.35f || available.y > 500f) {
+                    val target = if (sheetOffsetY.value > maxPullDownPx * 0.35f || available.y > 400f) {
                         isPulledDown = true
                         maxPullDownPx
                     } else {
@@ -780,9 +782,10 @@ fun AzanHomeContent(
                     }
                     sheetOffsetY.animateTo(
                         targetValue = target,
+                        initialVelocity = available.y,
                         animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow
                         )
                     )
                     return Velocity.Zero
@@ -873,18 +876,23 @@ fun AzanHomeContent(
                     }
 
                     // Admin icon button (Profile/Avatar)
-                    IconButton(
-                        onClick = { onOpenAdminLogin() },
+                    Box(
                         modifier = Modifier
-                            .size(46.dp)
+                            .size(38.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFF3DE8E))
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(bounded = true),
+                                onClick = { onOpenAdminLogin() }
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Admin Profile",
                             tint = Color.Black,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -900,7 +908,7 @@ fun AzanHomeContent(
                 .let { if (isPulledDown) it.wrapContentHeight() else it.fillMaxHeight() }
                 .padding(
                     top = (baseTopPadding + currentOffsetDp - 18.dp).coerceAtLeast(0.dp),
-                    bottom = if (isPulledDown) 14.dp else 10.dp
+                    bottom = if (isPulledDown) 0.dp else 10.dp
                 )
         ) {
             Surface(
@@ -918,11 +926,16 @@ fun AzanHomeContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .let { if (isPulledDown) it.wrapContentHeight() else it.fillMaxSize() }
+                        .onSizeChanged {
+                            if (isPulledDown && it.height > 0) {
+                                sheetContentHeightPx = it.height + with(density) { 18.dp.roundToPx() }
+                            }
+                        }
                         .padding(
                             start = 14.dp,
                             end = 14.dp,
-                            top = 22.dp,
-                            bottom = if (isPulledDown) 10.dp else 12.dp
+                            top = if (isPulledDown) 8.dp else 22.dp,
+                            bottom = if (isPulledDown) 2.dp else 12.dp
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -941,7 +954,7 @@ fun AzanHomeContent(
                         onNextDay = { viewModel.nextDay() },
                         onToday = { viewModel.selectToday() },
                         onOpenAdminLogin = onOpenAdminLogin,
-                        scale = if (isPulledDown) 0.94f else 1.0f,
+                        scale = if (isPulledDown) 0.65f else 1.0f,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -1076,16 +1089,16 @@ fun AzanHomeContent(
                             azanTime24 = highlightedInfo.azanTime,
                             jammatTime24 = highlightedInfo.jammatTime,
                             compact = false,
-                            textScale = 1.3f,
-                            timeFontSize = 36.sp,
+                            labelFontSize = 18.sp,
+                            timeFontSize = 38.sp,
                             timeSuffixSize = 18.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 12.dp, horizontal = 12.dp)
+                                .padding(vertical = 10.dp, horizontal = 12.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} • Powered by @tek",
@@ -1093,7 +1106,7 @@ fun AzanHomeContent(
                         color = Color.White.copy(alpha = 0.4f),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 2.dp, bottom = 2.dp),
+                            .padding(top = 1.dp, bottom = 1.dp),
                         textAlign = TextAlign.Center
                     )
                 } else {
@@ -2356,6 +2369,9 @@ fun AzanSlot(
                     azanTime24 = time,
                     jammatTime24 = jammatTime,
                     compact = false,
+                    labelFontSize = 18.sp,
+                    timeFontSize = 30.sp,
+                    timeSuffixSize = 14.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 14.dp)
@@ -2719,6 +2735,7 @@ fun HighlightedAzanJammatDisplay(
     textScale: Float = 1.0f,
     timeFontSize: androidx.compose.ui.unit.TextUnit? = null,
     timeSuffixSize: androidx.compose.ui.unit.TextUnit? = null,
+    labelFontSize: androidx.compose.ui.unit.TextUnit? = null,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalAppStrings.current
@@ -2746,6 +2763,7 @@ fun HighlightedAzanJammatDisplay(
 
     val effectiveTimeSize = timeFontSize ?: (if (compact) 16.5.sp else (20f * textScale).sp)
     val effectiveSuffixSize = timeSuffixSize ?: (if (compact) 9.5.sp else (12f * textScale).sp)
+    val effectiveLabelSize = labelFontSize ?: (if (compact) 9.5.sp else (11f * textScale).sp)
 
     Row(
         modifier = modifier,
@@ -2759,7 +2777,7 @@ fun HighlightedAzanJammatDisplay(
         ) {
             Text(
                 text = strings.azanLabel.uppercase(),
-                fontSize = if (compact) 9.5.sp else (11f * textScale).sp,
+                fontSize = effectiveLabelSize,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFF3DE8E),
                 letterSpacing = 0.5.sp,
@@ -2816,7 +2834,7 @@ fun HighlightedAzanJammatDisplay(
         ) {
             Text(
                 text = strings.jammatLabel.uppercase(),
-                fontSize = if (compact) 9.5.sp else (11f * textScale).sp,
+                fontSize = effectiveLabelSize,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF86EFAC),
                 letterSpacing = 0.5.sp,
