@@ -632,7 +632,7 @@ fun AzanHomeContent(
         val coroutineScope = rememberCoroutineScope()
 
         val baseTopPadding = 205.dp
-        val navGap = 2.dp
+        val navGap = 0.dp
         val navGapPx = with(density) { navGap.toPx() }
         val screenHeightPx = with(density) { screenHeight.toPx() }
         val baseTopPaddingPx = with(density) { baseTopPadding.toPx() }
@@ -644,7 +644,7 @@ fun AzanHomeContent(
             with(density) { 260.dp.toPx() }
         }
 
-        // When slid down: highlighted slot and content section collapse down leaving a minimal clean 2dp gap above navigation bar
+        // When slid down: highlighted slot and content section collapse down fully to navigation bar
         val targetCollapsedTopPx = (screenHeightPx - navGapPx - effectiveCollapsedSheetHeightPx).coerceAtLeast(baseTopPaddingPx)
         val maxPullDownPx = (targetCollapsedTopPx - baseTopPaddingPx).coerceAtLeast(0f)
         val maxPullDownDistance = with(density) { maxPullDownPx.toDp() }
@@ -1561,6 +1561,7 @@ fun ClockDisplay(
                                 fontSize = (52f * scale).sp,
                                 fontWeight = FontWeight.Black,
                                 style = androidx.compose.ui.text.TextStyle(
+                                    fontFamily = com.example.ui.theme.AppFontFamily,
                                     brush = Brush.verticalGradient(
                                         colors = listOf(Color(0xFFF3DE8E), Color(0xFFB37C3C))
                                     )
@@ -1590,6 +1591,7 @@ fun ClockDisplay(
                                     text = c.toString(),
                                     fontSize = (20f * scale).sp,
                                     fontWeight = FontWeight.Bold,
+                                    fontFamily = com.example.ui.theme.AppFontFamily,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                             }
@@ -1599,11 +1601,12 @@ fun ClockDisplay(
                         text = amPmFormat.format(currentTime.time).uppercase(),
                         fontSize = (14f * scale).sp,
                         fontWeight = FontWeight.Bold,
+                        fontFamily = com.example.ui.theme.AppFontFamily,
                         color = TextColor
                     )
                 }
             }
-            Spacer(modifier = Modifier.height((4f * scale).dp))
+            Spacer(modifier = Modifier.height(1.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -1618,17 +1621,18 @@ fun ClockDisplay(
                 val formattedDate = "$dayName, $dayNum $monthShort $yearNum"
                 Text(
                     text = formattedDate,
-                    fontSize = (13f * scale).sp,
+                    fontSize = 14.5.sp,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = com.example.ui.theme.AppFontFamily,
                     color = dateColor,
-                    letterSpacing = 1.5.sp,
+                    letterSpacing = 1.sp,
                     modifier = Modifier.padding(horizontal = 4.dp),
                     textAlign = TextAlign.Center
                 )
             }
             
             if (islamicDateText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height((4f * scale).dp))
+                Spacer(modifier = Modifier.height(1.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -1636,8 +1640,9 @@ fun ClockDisplay(
                 ) {
                     Text(
                         text = islamicDateText,
-                        fontSize = ((if (language == "ur") 14f else 12f) * scale).sp,
+                        fontSize = if (language == "ur") 15.sp else 13.5.sp,
                         fontWeight = FontWeight.Bold,
+                        fontFamily = com.example.ui.theme.AppFontFamily,
                         color = MaterialTheme.colorScheme.secondary,
                         letterSpacing = if (language == "ur") 0.sp else 0.5.sp,
                         textAlign = TextAlign.Center

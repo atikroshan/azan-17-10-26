@@ -1,8 +1,10 @@
 package com.example.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.TextStyle
 
 private val DarkColorScheme = darkColorScheme(
     primary = Golden,
@@ -19,5 +21,9 @@ private val DarkColorScheme = darkColorScheme(
 fun MyApplicationTheme(
     content: @Composable () -> Unit,
 ) {
-  MaterialTheme(colorScheme = DarkColorScheme, typography = Typography, content = content)
+    MaterialTheme(colorScheme = DarkColorScheme, typography = Typography) {
+        ProvideTextStyle(value = TextStyle(fontFamily = AppFontFamily)) {
+            content()
+        }
+    }
 }
