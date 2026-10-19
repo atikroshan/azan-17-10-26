@@ -876,7 +876,7 @@ fun AzanHomeContent(
                     IconButton(
                         onClick = { onOpenAdminLogin() },
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(46.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFF3DE8E))
                     ) {
@@ -1076,9 +1076,9 @@ fun AzanHomeContent(
                             azanTime24 = highlightedInfo.azanTime,
                             jammatTime24 = highlightedInfo.jammatTime,
                             compact = false,
-                            textScale = 1.0f,
-                            timeFontSize = 52.sp,
-                            timeSuffixSize = 16.sp,
+                            textScale = 1.3f,
+                            timeFontSize = 36.sp,
+                            timeSuffixSize = 18.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 12.dp, horizontal = 12.dp)
