@@ -1147,6 +1147,7 @@ fun AzanHomeContent(
             scale = 1.0f,
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                .padding(top = if (isPulledDown) 20.dp else 4.dp)
                 .then(dragGestureModifier),
             onClick = {
                 coroutineScope.launch {
@@ -1590,7 +1591,7 @@ fun ClockDisplay(
                                 Text(
                                     text = c.toString(),
                                     fontSize = (20f * scale).sp,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.Black,
                                     fontFamily = com.example.ui.theme.AppFontFamily,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -1600,13 +1601,13 @@ fun ClockDisplay(
                     Text(
                         text = amPmFormat.format(currentTime.time).uppercase(),
                         fontSize = (14f * scale).sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
                         fontFamily = com.example.ui.theme.AppFontFamily,
                         color = TextColor
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(1.dp))
+            Spacer(modifier = Modifier.height(0.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
@@ -1622,7 +1623,7 @@ fun ClockDisplay(
                 Text(
                     text = formattedDate,
                     fontSize = 14.5.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     fontFamily = com.example.ui.theme.AppFontFamily,
                     color = dateColor,
                     letterSpacing = 1.sp,
@@ -1632,7 +1633,7 @@ fun ClockDisplay(
             }
             
             if (islamicDateText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(1.dp))
+                Spacer(modifier = Modifier.height(0.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -1641,7 +1642,7 @@ fun ClockDisplay(
                     Text(
                         text = islamicDateText,
                         fontSize = if (language == "ur") 15.sp else 13.5.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         fontFamily = com.example.ui.theme.AppFontFamily,
                         color = MaterialTheme.colorScheme.secondary,
                         letterSpacing = if (language == "ur") 0.sp else 0.5.sp,
@@ -2783,7 +2784,7 @@ fun HighlightedAzanJammatDisplay(
             Text(
                 text = strings.azanLabel.uppercase(),
                 fontSize = effectiveLabelSize,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Black,
                 color = Color(0xFFF3DE8E),
                 letterSpacing = 0.5.sp,
                 maxLines = 1
@@ -2806,7 +2807,7 @@ fun HighlightedAzanJammatDisplay(
                     Text(
                         text = azanSuffix,
                         fontSize = effectiveSuffixSize,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
                         color = Color(0xFFFFD700).copy(alpha = 0.85f),
                         maxLines = 1,
                         softWrap = false,
@@ -2840,7 +2841,7 @@ fun HighlightedAzanJammatDisplay(
             Text(
                 text = strings.jammatLabel.uppercase(),
                 fontSize = effectiveLabelSize,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Black,
                 color = Color(0xFF86EFAC),
                 letterSpacing = 0.5.sp,
                 maxLines = 1
@@ -2863,7 +2864,7 @@ fun HighlightedAzanJammatDisplay(
                     Text(
                         text = jammatSuffix,
                         fontSize = effectiveSuffixSize,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Black,
                         color = Color(0xFF4ADE80).copy(alpha = 0.85f),
                         maxLines = 1,
                         softWrap = false,
