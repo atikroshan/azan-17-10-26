@@ -241,20 +241,12 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides fixedDensity,
                     LocalAppStrings provides strings
                 ) {
-                    var showSplash by remember { mutableStateOf(true) }
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AzanScreen(
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                modifier = Modifier.padding(innerPadding)
-                            )
-                            if (showSplash) {
-                                com.example.ui.SplashScreen {
-                                    showSplash = false
-                                }
-                            }
-                        }
+                        AzanScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            modifier = Modifier.padding(innerPadding)
+                        )
                     }
                 }
             }
@@ -923,6 +915,7 @@ fun AzanHomeContent(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
+                    .padding(top = -18.dp)
             ) {
                 Surface(
                     shape = CircleShape,
@@ -1184,41 +1177,6 @@ fun AzanHomeContent(
                 }
             }
 
-            // Circular arrow handle on top edge of sheet (half inside, half outside)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFFFED65B),
-                    shadowElevation = 6.dp,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clickable {
-                            coroutineScope.launch {
-                                val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
-                                isPulledDown = (target > 0f)
-                                sheetOffsetY.animateTo(
-                                    targetValue = target,
-                                    animationSpec = tween(
-                                        durationMillis = 900,
-                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                                    )
-                                )
-                            }
-                        }
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Icon(
-                            imageVector = if (isPulledDown) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = "Toggle Sheet",
-                            tint = Color(0xFF00221a),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
         }
 
     }
