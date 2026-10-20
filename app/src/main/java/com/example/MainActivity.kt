@@ -911,43 +911,6 @@ fun AzanHomeContent(
                     bottom = if (isPulledDown) 0.dp else 10.dp
                 )
         ) {
-            // Circular arrow handle on top edge of sheet (half inside, half outside)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = -18.dp)
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFFFED65B),
-                    shadowElevation = 6.dp,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clickable {
-                            coroutineScope.launch {
-                                val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
-                                isPulledDown = (target > 0f)
-                                sheetOffsetY.animateTo(
-                                    targetValue = target,
-                                    animationSpec = tween(
-                                        durationMillis = 900,
-                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                                    )
-                                )
-                            }
-                        }
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Icon(
-                            imageVector = if (isPulledDown) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = "Toggle Sheet",
-                            tint = Color(0xFF00221a),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -971,7 +934,7 @@ fun AzanHomeContent(
                         .padding(
                             start = 14.dp,
                             end = 14.dp,
-                            top = if (isPulledDown) 8.dp else 22.dp,
+                            top = if (isPulledDown) 24.dp else 36.dp,
                             bottom = if (isPulledDown) 2.dp else 12.dp
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -1176,14 +1139,47 @@ fun AzanHomeContent(
                     }
                 }
             }
-
         }
 
+        // Circular arrow handle on top edge of sheet (half inside, half outside)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = (-4).dp)
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = Color(0xFFFED65B),
+                shadowElevation = 6.dp,
+                modifier = Modifier
+                    .size(44.dp)
+                    .clickable {
+                        coroutineScope.launch {
+                            val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
+                            isPulledDown = (target > 0f)
+                            sheetOffsetY.animateTo(
+                                targetValue = target,
+                                animationSpec = tween(
+                                    durationMillis = 900,
+                                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                )
+                            )
+                        }
+                    }
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(
+                        imageVector = if (isPulledDown) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = "Toggle Sheet",
+                        tint = Color(0xFF00221a),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        }
     }
 }
 }
-
-
 
 @Composable
 fun LanguageCirclesRow(

@@ -40,6 +40,12 @@ class PrayerNotificationWorker(
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val audioAttributes = android.media.AudioAttributes.Builder()
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                .build()
+
             val channel = NotificationChannel(
                 channelId,
                 "Prayer Times (Azan Reminders)",
@@ -48,6 +54,7 @@ class PrayerNotificationWorker(
                 description = "Notifies when prayer times are reached based on the database schedule"
                 enableVibration(true)
                 enableLights(true)
+                setSound(soundUri, audioAttributes)
             }
             notificationManager.createNotificationChannel(channel)
         }
