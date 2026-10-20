@@ -300,6 +300,12 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
         }
     }
 
+    LaunchedEffect(uiState.isSetupCompleted) {
+        if (!uiState.isSetupCompleted) {
+            showMasjidSelectorScreen = true
+        }
+    }
+
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->

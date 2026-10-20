@@ -191,211 +191,113 @@ fun FirstTimeSetupScreen(
                         .height(cardHeight)
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (activeMasjid != null) {
-                            // Selected Masjid Photo
-                            val photoModel = if (activeMasjid.photoUrl.isNotBlank()) activeMasjid.photoUrl else R.drawable.foreground
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(photoModel)
-                                    .error(R.drawable.foreground)
-                                    .placeholder(R.drawable.foreground)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = activeMasjid.name,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-                            // Dark Gradient Overlay at bottom of photo with Name, Location & ID badge
-                            Box(
+                        // ALWAYS SHOW: Main App Logo & AZAN TIME Graen Metal Title!
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            Color(0xFF14241C),
+                                            Color(0xFF0F1A15),
+                                            Color(0xFF0A0F14)
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .align(Alignment.BottomCenter)
-                                    .background(
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                Color.Transparent,
-                                                Color(0xFF0A0F14).copy(alpha = 0.95f)
-                                            )
-                                        )
-                                    )
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.Bottom,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                // Golden Medallion with Main App Logo
+                                Box(
+                                    modifier = Modifier.size(156.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Column(modifier = Modifier.weight(1f, fill = false)) {
-                                        Text(
-                                            text = activeMasjid.getLocalizedName(uiState.language),
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFF2CA50),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        val displayLoc = listOf(
-                                            activeMasjid.getLocalizedArea(uiState.language),
-                                            activeMasjid.city,
-                                            activeMasjid.state
-                                        ).filter { it.isNotBlank() }.joinToString(", ")
-                                        if (displayLoc.isNotBlank()) {
-                                            Spacer(modifier = Modifier.height(2.dp))
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Place,
-                                                    contentDescription = null,
-                                                    tint = Color(0xFF38BDF8),
-                                                    modifier = Modifier.size(13.dp)
-                                                )
-                                                Text(
-                                                    text = displayLoc,
-                                                    fontSize = 12.sp,
-                                                    color = Color.White.copy(alpha = 0.85f),
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.width(8.dp))
-
+                                    // Subtle Golden Aura Glow
                                     Box(
                                         modifier = Modifier
+                                            .size(180.dp)
                                             .background(
-                                                Color(0xFF1E2836).copy(alpha = 0.85f),
-                                                RoundedCornerShape(6.dp)
+                                                Brush.radialGradient(
+                                                    listOf(
+                                                        Color(0xFFF2CA50).copy(alpha = 0.30f),
+                                                        Color(0xFFC9A741).copy(alpha = 0.12f),
+                                                        Color.Transparent
+                                                    )
+                                                ),
+                                                shape = CircleShape
+                                            )
+                                    )
+
+                                    // Circular Golden Medallion
+                                    Box(
+                                        modifier = Modifier
+                                            .size(148.dp)
+                                            .background(
+                                                Brush.linearGradient(
+                                                    listOf(Color(0xFF1E3328), Color(0xFF0D1712))
+                                                ),
+                                                shape = CircleShape
                                             )
                                             .border(
-                                                1.dp,
-                                                Color(0xFFF2CA50).copy(alpha = 0.4f),
-                                                RoundedCornerShape(6.dp)
+                                                BorderStroke(
+                                                    2.5.dp,
+                                                    Brush.verticalGradient(
+                                                        listOf(
+                                                            Color(0xFFF3DE8E),
+                                                            Color(0xFFF2CA50),
+                                                            Color(0xFFB37C3C)
+                                                        )
+                                                    )
+                                                ),
+                                                shape = CircleShape
                                             )
-                                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                                    ) {
-                                        Text(
-                                            text = "#${activeMasjid.id}",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFF2CA50)
-                                        )
-                                    }
-                                }
-                            }
-                        } else {
-                            // 1st TIME APP INSTALL: Main App Logo (thoda bada) & AZAN TIME Graen Metal Title!
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.radialGradient(
-                                            colors = listOf(
-                                                Color(0xFF14241C),
-                                                Color(0xFF0F1A15),
-                                                Color(0xFF0A0F14)
-                                            )
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                                ) {
-                                    // Golden Medallion with Main App Logo (thoda bada: 156dp outer, 148dp inner, 10dp padding)
-                                    Box(
-                                        modifier = Modifier.size(156.dp),
+                                            .padding(10.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        // Subtle Golden Aura Glow
-                                        Box(
-                                            modifier = Modifier
-                                                .size(180.dp)
-                                                .background(
-                                                    Brush.radialGradient(
-                                                        listOf(
-                                                            Color(0xFFF2CA50).copy(alpha = 0.30f),
-                                                            Color(0xFFC9A741).copy(alpha = 0.12f),
-                                                            Color.Transparent
-                                                        )
-                                                    ),
-                                                    shape = CircleShape
-                                                )
-                                        )
-
-                                        // Circular Golden Medallion
-                                        Box(
-                                            modifier = Modifier
-                                                .size(148.dp)
-                                                .background(
-                                                    Brush.linearGradient(
-                                                        listOf(Color(0xFF1E3328), Color(0xFF0D1712))
-                                                    ),
-                                                    shape = CircleShape
-                                                )
-                                                .border(
-                                                    BorderStroke(
-                                                        2.5.dp,
-                                                        Brush.verticalGradient(
-                                                            listOf(
-                                                                Color(0xFFF3DE8E),
-                                                                Color(0xFFF2CA50),
-                                                                Color(0xFFB37C3C)
-                                                            )
-                                                        )
-                                                    ),
-                                                    shape = CircleShape
-                                                )
-                                                .padding(10.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            androidx.compose.foundation.Image(
-                                                painter = androidx.compose.ui.res.painterResource(id = R.drawable.foreground),
-                                                contentDescription = "Azan Time Logo",
-                                                contentScale = ContentScale.Fit,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.height(12.dp))
-
-                                    // AZAN TIME typography with Graen Metal font, golden gradient and shadow (same font as splash screen)
-                                    val goldBrush = remember {
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color(0xFFF3DE8E),
-                                                Color(0xFFF3D66A),
-                                                Color(0xFFB37C3C)
-                                            ),
-                                            startY = 0f,
-                                            endY = 120f
+                                        androidx.compose.foundation.Image(
+                                            painter = androidx.compose.ui.res.painterResource(id = R.drawable.foreground),
+                                            contentDescription = "Azan Time Logo",
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier.fillMaxSize()
                                         )
                                     }
-                                    Text(
-                                        text = "AZAN TIME",
-                                        fontFamily = GraenMetalFontFamily,
-                                        fontSize = 36.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        letterSpacing = 2.sp,
-                                        textAlign = TextAlign.Center,
-                                        style = TextStyle(
-                                            brush = goldBrush,
-                                            shadow = GraenMetalGoldShadow
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // AZAN TIME typography
+                                val goldBrush = remember {
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFFF3DE8E),
+                                            Color(0xFFF3D66A),
+                                            Color(0xFFB37C3C)
                                         ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 8.dp)
+                                        startY = 0f,
+                                        endY = 120f
                                     )
                                 }
+                                Text(
+                                    text = "AZAN TIME",
+                                    fontFamily = GraenMetalFontFamily,
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    letterSpacing = 2.sp,
+                                    textAlign = TextAlign.Center,
+                                    style = TextStyle(
+                                        brush = goldBrush,
+                                        shadow = GraenMetalGoldShadow
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp)
+                                )
                             }
                         }
                     }

@@ -50,7 +50,7 @@ data class UIState(
     val allMasajid: List<MasjidItem> = MasjidRepository.getAllMasajid(),
     val restoredTaqwaPoints: Int = 0,
     val taqwaSyncUser: String = "",
-    val isSetupCompleted: Boolean = true,
+    val isSetupCompleted: Boolean = false,
     val isSyncingSheet: Boolean = false,
     val appsScriptUrl: String = "",
     val lastSyncStatusMessage: String? = null,
