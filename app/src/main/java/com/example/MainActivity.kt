@@ -241,12 +241,20 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides fixedDensity,
                     LocalAppStrings provides strings
                 ) {
+                    var showSplash by remember { mutableStateOf(true) }
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        AzanScreen(
-                            viewModel = viewModel,
-                            uiState = uiState,
-                            modifier = Modifier.padding(innerPadding)
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AzanScreen(
+                                viewModel = viewModel,
+                                uiState = uiState,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                            if (showSplash) {
+                                com.example.ui.SplashScreen {
+                                    showSplash = false
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -911,6 +919,42 @@ fun AzanHomeContent(
                     bottom = if (isPulledDown) 0.dp else 10.dp
                 )
         ) {
+            // Circular arrow handle on top edge of sheet (half inside, half outside)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFFFED65B),
+                    shadowElevation = 6.dp,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clickable {
+                            coroutineScope.launch {
+                                val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
+                                isPulledDown = (target > 0f)
+                                sheetOffsetY.animateTo(
+                                    targetValue = target,
+                                    animationSpec = tween(
+                                        durationMillis = 900,
+                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                    )
+                                )
+                            }
+                        }
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Icon(
+                            imageVector = if (isPulledDown) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = "Toggle Sheet",
+                            tint = Color(0xFF00221a),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1139,30 +1183,44 @@ fun AzanHomeContent(
                     }
                 }
             }
-        }
 
-        // Absolute positioning for the drag handle: drawn right on top of the sheet's top boundary
-        SlidingArrowHandle(
-            isPulledDown = isPulledDown,
-            scale = 1.0f,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = if (isPulledDown) 20.dp else 4.dp)
-                .then(dragGestureModifier),
-            onClick = {
-                coroutineScope.launch {
-                    val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
-                    isPulledDown = (target > 0f)
-                    sheetOffsetY.animateTo(
-                        targetValue = target,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
+            // Circular arrow handle on top edge of sheet (half inside, half outside)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFFFED65B),
+                    shadowElevation = 6.dp,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clickable {
+                            coroutineScope.launch {
+                                val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
+                                isPulledDown = (target > 0f)
+                                sheetOffsetY.animateTo(
+                                    targetValue = target,
+                                    animationSpec = tween(
+                                        durationMillis = 900,
+                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                    )
+                                )
+                            }
+                        }
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Icon(
+                            imageVector = if (isPulledDown) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = "Toggle Sheet",
+                            tint = Color(0xFF00221a),
+                            modifier = Modifier.size(24.dp)
                         )
-                    )
+                    }
                 }
             }
-        )
+        }
+
     }
 }
 }
@@ -1565,6 +1623,11 @@ fun ClockDisplay(
                                     fontFamily = com.example.ui.theme.AppFontFamily,
                                     brush = Brush.verticalGradient(
                                         colors = listOf(Color(0xFFF3DE8E), Color(0xFFB37C3C))
+                                    ),
+                                    shadow = androidx.compose.ui.graphics.Shadow(
+                                        color = Color.Black.copy(alpha = 0.9f),
+                                        offset = androidx.compose.ui.geometry.Offset(1f, 1.5f),
+                                        blurRadius = 3f
                                     )
                                 ),
                                 letterSpacing = (-1).sp
@@ -1623,7 +1686,7 @@ fun ClockDisplay(
                 Text(
                     text = formattedDate,
                     fontSize = 14.5.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Black,
                     fontFamily = com.example.ui.theme.AppFontFamily,
                     color = dateColor,
                     letterSpacing = 1.sp,
@@ -1642,7 +1705,7 @@ fun ClockDisplay(
                     Text(
                         text = islamicDateText,
                         fontSize = if (language == "ur") 15.sp else 13.5.sp,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Black,
                         fontFamily = com.example.ui.theme.AppFontFamily,
                         color = MaterialTheme.colorScheme.secondary,
                         letterSpacing = if (language == "ur") 0.sp else 0.5.sp,

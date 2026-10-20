@@ -8,13 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-val AppFontFamily = FontFamily(
-    Font(R.font.roboto, FontWeight.Normal),
-    Font(R.font.roboto, FontWeight.Medium),
-    Font(R.font.roboto, FontWeight.SemiBold),
-    Font(R.font.roboto, FontWeight.Bold),
-    Font(R.font.roboto, FontWeight.Black)
-)
+val AppFontFamily = FontFamily.SansSerif
 
 val Typography = Typography(
     displayLarge = TextStyle(fontFamily = AppFontFamily, fontWeight = FontWeight.Normal, fontSize = 57.sp, lineHeight = 64.sp),

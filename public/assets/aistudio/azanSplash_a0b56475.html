@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="h-full" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<meta content="mobile_blank" name="shell-type">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&amp;family=Cinzel+Decorative:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+/* Custom Font Integration */
+@font-face {
+  font-family: 'GraenMetal';
+  src: url('GraenMetal-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer base{html,body{width:100vw;min-height:100%;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+
+/* Custom keyframes for splash sequence */
+@keyframes bounceInMedallion {
+  0% { opacity: 0; transform: scale(0.25) translateY(40px); }
+  50% { opacity: 1; transform: scale(1.1) translateY(-8px); }
+  70% { transform: scale(0.96) translateY(3px); }
+  85% { transform: scale(1.02) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideUpText {
+  0% { opacity: 0; transform: translateY(30px); }
+  60% { opacity: 0.85; }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes zoomDisappearTogether {
+  0% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 15px rgba(254, 214, 91, 0.3)); }
+  20% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 0 40px rgba(254, 214, 91, 0.8)); }
+  100% { transform: scale(18); opacity: 0; filter: drop-shadow(0 0 100px rgba(255, 224, 139, 1)); }
+}
+
+.anim-bounce-in { animation: bounceInMedallion 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.anim-text-enter { animation: slideUpText 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both; }
+.anim-zoom-out-all { animation: zoomDisappearTogether 1.25s cubic-bezier(0.68, -0.05, 0.85, 0.05) forwards !important; pointer-events: none; }
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface": "#f8faf9", "primary-container": "#0f382e", "on-tertiary-fixed": "#241a00", "surface-container-lowest": "#ffffff", "on-tertiary-fixed-variant": "#584400", "on-surface-variant": "#414845", "error": "#ba1a1a", "surface-container": "#eceeed", "secondary": "#735c00", "secondary-fixed": "#ffe088", "surface-container-high": "#e6e9e8", "secondary-container": "#fed65b", "inverse-surface": "#2e3131", "outline": "#717975", "on-primary-container": "#7aa295", "tertiary-fixed-dim": "#e7c35a", "tertiary-container": "#c9a741", "primary-fixed-dim": "#a6cfc1", "surface-container-low": "#f2f4f3", "on-error-container": "#93000a", "on-primary": "#ffffff", "on-background": "#191c1c", "tertiary-fixed": "#ffe08b", "on-primary-fixed-variant": "#274e43", "on-error": "#ffffff", "surface-bright": "#f8faf9", "on-secondary-fixed": "#241a00", "primary-fixed": "#c1ecdd", "on-secondary": "#ffffff", "on-secondary-fixed-variant": "#574500", "outline-variant": "#c0c8c4", "inverse-on-surface": "#eff1f0", "surface-tint": "#3f665a", "secondary-fixed-dim": "#e9c349", "primary": "#00221a", "surface-dim": "#d8dada", "on-tertiary-container": "#4f3d00", "on-secondary-container": "#745c00", "on-tertiary": "#ffffff", "on-primary-fixed": "#002019", "inverse-primary": "#a6cfc1", "tertiary": "#745b00", "error-container": "#ffdad6", "surface-container-highest": "#e1e3e2", "surface-variant": "#e1e3e2", "on-surface": "#191c1c", "background": "#f8faf9" } } } };</script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col relative antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+<main class="flex-1 flex flex-col relative w-full min-h-screen bg-surface pt-safe pb-safe">
+<div class="flex flex-col w-full min-h-screen relative overflow-hidden select-none bg-primary text-on-primary cursor-pointer" id="screen-container" title="Tap anywhere to replay animation">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-container via-[#07241e] to-primary pointer-events-none"></div>
+<div class="absolute inset-0 opacity-[0.045] pointer-events-none">
+<svg class="w-full h-full" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="80" id="islamic-star-pattern" patternUnits="userSpaceOnUse" width="80">
+<path d="M40 0 L49 26 L77 26 L55 42 L63 68 L40 52 L17 68 L25 42 L3 26 L31 26 Z" fill="none" stroke="#fed65b" stroke-width="1.2"></path>
+<circle cx="40" cy="40" fill="none" r="14" stroke="#ffe08b" stroke-width="0.8"></circle>
+<path d="M0 40 L40 0 L80 40 L40 80 Z" fill="none" stroke="#fed65b" stroke-width="0.6"></path>
+</pattern>
+</defs>
+<rect fill="url(#islamic-star-pattern)" height="100%" width="100%"></rect>
+</svg>
+</div>
+
+<!-- Centered Splash Animation Wrapper -->
+<div class="relative z-10 w-full min-h-screen flex flex-col justify-center items-center px-5">
+<!-- Master Central Composition Group -->
+<div class="relative flex flex-col items-center will-change-transform transform-gpu origin-center anim-zoom-out-all" id="splash-hero">
+<!-- Circular Logo Medallion with Outer Glowing Rings -->
+<div class="relative w-64 h-64 flex items-center justify-center will-change-transform anim-bounce-in" id="medallion">
+<div class="absolute -inset-8 rounded-full bg-gradient-to-tr from-secondary/25 via-secondary-container/20 to-transparent blur-2xl animate-pulse"></div>
+<div class="absolute inset-0 rounded-full border border-secondary-container/25 animate-[spin_24s_linear_infinite]">
+<span class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_10px_#fed65b]"></span>
+<span class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_10px_#fed65b]"></span>
+</div>
+<div class="absolute inset-3 rounded-full border border-dashed border-secondary-container/35 animate-[spin_36s_linear_infinite_reverse]"></div>
+<div class="absolute inset-6 rounded-full bg-gradient-to-b from-primary-container/90 to-[#061c16]/95 backdrop-blur-md shadow-[0_16px_40px_rgba(0,0,0,0.55)] flex items-center justify-center p-3">
+<div class="absolute inset-0 rounded-full border border-secondary-fixed/40"></div>
+<div class="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-primary-container">
+<img alt="Azan Time Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzv4lkY-VFUwM4ArCsKdDYhYrOEkR0yJRLn90dBsI4QVDCmJfxrhTUN_ifTBx5Sny465t4O7nfAl1ledCCfRnazsPALOQH5KieopDQ63TlhSZ5lvlj-VduoZagDuoyE1F8Mg5jYoXhllceFatdiNcmzk9LgQKpfsKkeWAk_fzt0BX_MgGEBdo3msqbUW4SoujaKzTfdGc3JVLuWIjarh0cyjYcwJ_vBQNY8dvcnFo7hzgUeIhmLUBJGo8zRYLqLJgBAGE">
+</div>
+</div>
+</div>
+
+<!-- AZAN TIME Text and Punchline -->
+<div class="text-center mt-7 flex flex-col items-center will-change-transform anim-text-enter" id="title-text">
+  <div class="w-full flex flex-col items-center justify-center filter select-none relative">
+    
+    <!-- Custom GraenMetal Font Text (With 0-100 Top to Bottom Gradient) -->
+    <h1 class="drop-shadow-[0_0_16px_rgba(255,224,139,0.45)] leading-none m-0" 
+        style="font-family: 'GraenMetal', sans-serif; font-size: 4.5rem; letter-spacing: 0.05em; padding-bottom: 5px; 
+               background: linear-gradient(to bottom, #F3DE8E 0%, #F3D66A 40%, #B37C3C 100%); 
+               -webkit-background-clip: text; 
+               -webkit-text-fill-color: transparent; 
+               background-clip: text; 
+               color: transparent;">
+        AZAN TIME
+    </h1>
+    
+    <!-- Punchline Constrained between Z and M (White) -->
+    <p class="uppercase select-none text-center drop-shadow-[0_2px_8px_rgba(255,255,255,0.35)] text-[#ffffff] m-0" 
+       style="font-family: 'Arial Narrow', Arial, sans-serif; font-size: 0.9rem; font-weight: 400; font-stretch: condensed; letter-spacing: 0.05em; opacity: 0.95; max-width: 82%;">
+       "AAO ALLAH KI RAAH MEIN CHALE"
+    </p>
+
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+  (function() {
+    const splashHero = document.getElementById('splash-hero');
+    const medallion = document.getElementById('medallion');
+    const titleText = document.getElementById('title-text');
+    const screenContainer = document.getElementById('screen-container');
+
+    // Safe check for replay button if it exists elsewhere in your code
+    const replayBtn = document.getElementById('replay-btn');
+
+    let zoomTimeout = null;
+
+    function startSequence() {
+      if (zoomTimeout) clearTimeout(zoomTimeout);
+
+      // Reset classes
+      splashHero.classList.remove('anim-zoom-out-all');
+      medallion.classList.remove('anim-bounce-in');
+      titleText.classList.remove('anim-text-enter');
+
+      // Force layout reflow
+      void splashHero.offsetWidth;
+
+      // Start entrance animations
+      medallion.classList.add('anim-bounce-in');
+      titleText.classList.add('anim-text-enter');
+
+      // Zoom out after 5 seconds
+      zoomTimeout = setTimeout(() => {
+        splashHero.classList.add('anim-zoom-out-all');
+      }, 5000);
+    }
+
+    startSequence();
+
+    if (replayBtn) {
+      replayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startSequence();
+      });
+    }
+
+    screenContainer.addEventListener('click', () => {
+      startSequence();
+    });
+  })();
+</script>
+</main>
+</body>
+</html>
