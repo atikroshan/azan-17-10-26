@@ -1014,7 +1014,8 @@ fun AzanHomeContent(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = highlightedInfo.displayName,
-                            fontWeight = FontWeight.Black,
+                            fontWeight = FontWeight(900),
+                            fontFamily = com.example.ui.theme.AppFontFamily,
                             color = MaterialTheme.colorScheme.secondary,
                             fontSize = 17.sp
                         )
@@ -1092,6 +1093,7 @@ fun AzanHomeContent(
                             labelFontSize = 18.sp,
                             timeFontSize = 38.sp,
                             timeSuffixSize = 18.sp,
+                            useRobotoBlack = true,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 10.dp, horizontal = 12.dp)
@@ -2759,6 +2761,7 @@ fun HighlightedAzanJammatDisplay(
     timeFontSize: androidx.compose.ui.unit.TextUnit? = null,
     timeSuffixSize: androidx.compose.ui.unit.TextUnit? = null,
     labelFontSize: androidx.compose.ui.unit.TextUnit? = null,
+    useRobotoBlack: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalAppStrings.current
@@ -2801,7 +2804,8 @@ fun HighlightedAzanJammatDisplay(
             Text(
                 text = strings.azanLabel.uppercase(),
                 fontSize = effectiveLabelSize,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight(900),
+                fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
                 color = Color(0xFFF3DE8E),
                 letterSpacing = 0.5.sp,
                 maxLines = 1
@@ -2814,7 +2818,9 @@ fun HighlightedAzanJammatDisplay(
                 Text(
                     text = azanTimeStr,
                     fontSize = effectiveTimeSize,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight(900),
+                    fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
+                    letterSpacing = if (useRobotoBlack) (-0.5).sp else androidx.compose.ui.unit.TextUnit.Unspecified,
                     color = Color(0xFFFFD700),
                     maxLines = 1,
                     softWrap = false
@@ -2824,7 +2830,8 @@ fun HighlightedAzanJammatDisplay(
                     Text(
                         text = azanSuffix,
                         fontSize = effectiveSuffixSize,
-                        fontWeight = FontWeight.Black,
+                        fontWeight = FontWeight(900),
+                        fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
                         color = Color(0xFFFFD700).copy(alpha = 0.85f),
                         maxLines = 1,
                         softWrap = false,
@@ -2858,7 +2865,8 @@ fun HighlightedAzanJammatDisplay(
             Text(
                 text = strings.jammatLabel.uppercase(),
                 fontSize = effectiveLabelSize,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight(900),
+                fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
                 color = Color(0xFF86EFAC),
                 letterSpacing = 0.5.sp,
                 maxLines = 1
@@ -2871,7 +2879,9 @@ fun HighlightedAzanJammatDisplay(
                 Text(
                     text = jammatTimeStr,
                     fontSize = effectiveTimeSize,
-                    fontWeight = FontWeight.Black,
+                    fontWeight = FontWeight(900),
+                    fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
+                    letterSpacing = if (useRobotoBlack) (-0.5).sp else androidx.compose.ui.unit.TextUnit.Unspecified,
                     color = Color(0xFF4ADE80),
                     maxLines = 1,
                     softWrap = false
@@ -2881,7 +2891,8 @@ fun HighlightedAzanJammatDisplay(
                     Text(
                         text = jammatSuffix,
                         fontSize = effectiveSuffixSize,
-                        fontWeight = FontWeight.Black,
+                        fontWeight = FontWeight(900),
+                        fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
                         color = Color(0xFF4ADE80).copy(alpha = 0.85f),
                         maxLines = 1,
                         softWrap = false,
@@ -2981,8 +2992,12 @@ fun AdminLoginDialog(
     onDismiss: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
-    var adminId by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val curMasjid = selectedMasjid ?: allMasajid.firstOrNull()
+    val defaultAdminId = curMasjid?.adminId?.trim().takeUnless { it.isNullOrBlank() } ?: "admin"
+    val defaultPassword = curMasjid?.adminPassword?.trim().takeUnless { it.isNullOrBlank() } ?: "admin"
+
+    var adminId by remember { mutableStateOf(defaultAdminId) }
+    var password by remember { mutableStateOf(defaultPassword) }
     var isError by remember { mutableStateOf(false) }
 
     Dialog(
@@ -4056,20 +4071,20 @@ fun EditPrayerTimingDialog(
         )
     }
 
-    val (initAzanH, initAzanM, initAzanPm) = remember(prayer) {
+    val (initAzanH, initAzanM, _) = remember(prayer) {
         parseTimeParts(prayer.azanTime, defaultIsPm)
     }
-    val (initJammatH, initJammatM, initJammatPm) = remember(prayer) {
+    val (initJammatH, initJammatM, _) = remember(prayer) {
         parseTimeParts(prayer.jammatTime, defaultIsPm)
     }
 
     var azanHours by remember { mutableStateOf(initAzanH) }
     var azanMinutes by remember { mutableStateOf(initAzanM) }
-    var azanIsPm by remember { mutableStateOf(initAzanPm) }
+    var azanIsPm by remember { mutableStateOf(defaultIsPm) }
 
     var jammatHours by remember { mutableStateOf(initJammatH) }
     var jammatMinutes by remember { mutableStateOf(initJammatM) }
-    var jammatIsPm by remember { mutableStateOf(initJammatPm) }
+    var jammatIsPm by remember { mutableStateOf(defaultIsPm) }
 
     var errorText by remember { mutableStateOf("") }
 
@@ -4290,38 +4305,39 @@ fun EditPrayerTimingDialog(
 
                             Spacer(modifier = Modifier.width(12.dp))
 
-                            // AM / PM Switcher
-                            Column(
+                            // AM / PM Switcher: For Fajr only AM, for rest only PM
+                            Box(
                                 modifier = Modifier.padding(bottom = 14.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                contentAlignment = Alignment.Center
                             ) {
-                                Surface(
-                                    color = if (!azanIsPm) Color(0xFFF3DE8E) else Color(0xFF1E293B),
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = BorderStroke(1.dp, Color(0xFFF3DE8E).copy(alpha = 0.4f)),
-                                    modifier = Modifier.clickable { azanIsPm = false }
-                                ) {
-                                    Text(
-                                        text = "AM",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (!azanIsPm) Color(0xFF0F172A) else Color.White.copy(alpha = 0.6f),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-                                Surface(
-                                    color = if (azanIsPm) Color(0xFFF3DE8E) else Color(0xFF1E293B),
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = BorderStroke(1.dp, Color(0xFFF3DE8E).copy(alpha = 0.4f)),
-                                    modifier = Modifier.clickable { azanIsPm = true }
-                                ) {
-                                    Text(
-                                        text = "PM",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (azanIsPm) Color(0xFF0F172A) else Color.White.copy(alpha = 0.6f),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
+                                if (isFajr) {
+                                    Surface(
+                                        color = Color(0xFFF3DE8E),
+                                        shape = RoundedCornerShape(6.dp),
+                                        border = BorderStroke(1.dp, Color(0xFFF3DE8E).copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = "AM",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF0F172A),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                        )
+                                    }
+                                } else {
+                                    Surface(
+                                        color = Color(0xFFF3DE8E),
+                                        shape = RoundedCornerShape(6.dp),
+                                        border = BorderStroke(1.dp, Color(0xFFF3DE8E).copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = "PM",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF0F172A),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -4469,38 +4485,39 @@ fun EditPrayerTimingDialog(
 
                             Spacer(modifier = Modifier.width(12.dp))
 
-                            // AM / PM Switcher
-                            Column(
+                            // AM / PM Switcher: For Fajr only AM, for rest only PM
+                            Box(
                                 modifier = Modifier.padding(bottom = 14.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                contentAlignment = Alignment.Center
                             ) {
-                                Surface(
-                                    color = if (!jammatIsPm) Color(0xFF86EFAC) else Color(0xFF1E293B),
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = BorderStroke(1.dp, Color(0xFF86EFAC).copy(alpha = 0.4f)),
-                                    modifier = Modifier.clickable { jammatIsPm = false }
-                                ) {
-                                    Text(
-                                        text = "AM",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (!jammatIsPm) Color(0xFF0F172A) else Color.White.copy(alpha = 0.6f),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-                                Surface(
-                                    color = if (jammatIsPm) Color(0xFF86EFAC) else Color(0xFF1E293B),
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = BorderStroke(1.dp, Color(0xFF86EFAC).copy(alpha = 0.4f)),
-                                    modifier = Modifier.clickable { jammatIsPm = true }
-                                ) {
-                                    Text(
-                                        text = "PM",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (jammatIsPm) Color(0xFF0F172A) else Color.White.copy(alpha = 0.6f),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
+                                if (isFajr) {
+                                    Surface(
+                                        color = Color(0xFF86EFAC),
+                                        shape = RoundedCornerShape(6.dp),
+                                        border = BorderStroke(1.dp, Color(0xFF86EFAC).copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = "AM",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF0F172A),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                        )
+                                    }
+                                } else {
+                                    Surface(
+                                        color = Color(0xFF86EFAC),
+                                        shape = RoundedCornerShape(6.dp),
+                                        border = BorderStroke(1.dp, Color(0xFF86EFAC).copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = "PM",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF0F172A),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

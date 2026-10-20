@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-val AppFontFamily = FontFamily.SansSerif
+val AppFontFamily = com.example.ui.GraenMetalFontFamily
 
 val Typography = Typography(
     displayLarge = TextStyle(fontFamily = AppFontFamily, fontWeight = FontWeight.Normal, fontSize = 57.sp, lineHeight = 64.sp),

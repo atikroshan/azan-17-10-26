@@ -10,7 +10,12 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.R
 
 val GraenMetalFontFamily = FontFamily(
-    Font(R.font.graen_metal, FontWeight.Normal)
+    Font(R.font.graen_metal, FontWeight.Normal),
+    Font(R.font.graen_metal, FontWeight.Medium),
+    Font(R.font.graen_metal, FontWeight.SemiBold),
+    Font(R.font.graen_metal, FontWeight.Bold),
+    Font(R.font.graen_metal, FontWeight.ExtraBold),
+    Font(R.font.graen_metal, FontWeight.Black)
 )
 
 val GraenMetalGoldGradient = Brush.verticalGradient(
