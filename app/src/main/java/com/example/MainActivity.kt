@@ -281,7 +281,6 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
     var showAdminLoginDialog by remember { mutableStateOf(false) }
     var showAdminPanel by remember { mutableStateOf(false) }
     var showMasjidSelectorScreen by remember { mutableStateOf(false) }
-    var showSplash by remember { mutableStateOf(true) }
     var ramazanTapCount by remember { mutableIntStateOf(0) }
     var forcedRamazanActive by remember { mutableStateOf(false) }
     val effectiveRamazanActive = isRamazanActive || forcedRamazanActive
@@ -300,12 +299,6 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
     LaunchedEffect(effectiveRamazanActive) {
         if (!effectiveRamazanActive && selectedTab == "ramazan") {
             selectedTab = "home"
-        }
-    }
-
-    LaunchedEffect(uiState.isSetupCompleted) {
-        if (!uiState.isSetupCompleted) {
-            showMasjidSelectorScreen = true
         }
     }
 
@@ -338,9 +331,8 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
         else -> "Ramazan"
     }
 
-    if (showSplash) {
-        HtmlSplashScreen(onFinished = { showSplash = false })
-    } else if (showMasjidSelectorScreen) {
+    val showSetup = !uiState.isSetupCompleted || showMasjidSelectorScreen
+    if (showSetup) {
         FirstTimeSetupScreen(
             uiState = uiState,
             onSelectMasjid = { masjid -> viewModel.selectMasjid(masjid.id) },
@@ -348,7 +340,7 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
                 viewModel.completeSetup(masjidId)
                 showMasjidSelectorScreen = false
             },
-            onBack = { showMasjidSelectorScreen = false },
+            onBack = if (uiState.isSetupCompleted) { { showMasjidSelectorScreen = false } } else null,
             onRefresh = { viewModel.syncGoogleSheet() }
         )
     } else if (showAdminPanel) {

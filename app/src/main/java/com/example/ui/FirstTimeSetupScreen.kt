@@ -299,19 +299,14 @@ fun FirstTimeSetupScreen(
                                         .padding(horizontal = 8.dp)
                                 )
                                 // PUNCHLINE
-                                val punchline = when (uiState.language) {
-                                    "ur" -> "آپ کی نمازوں کا بااعتماد ساتھی"
-                                    "hi" -> "आपकी नमाज़ों का सच्चा साथी"
-                                    else -> "Your Faithful Prayer Companion"
-                                }
                                 Text(
-                                    text = punchline,
-                                    fontSize = 13.sp,
+                                    text = "AAO ALLAH KI RAAH MEIN CHALE",
+                                    fontSize = 13.5.sp,
                                     fontWeight = FontWeight.Normal,
                                     fontFamily = FontFamily.SansSerif,
-                                    color = Color(0xFFF2CA50).copy(alpha = 0.85f),
+                                    color = Color(0xFFF2CA50).copy(alpha = 0.90f),
                                     textAlign = TextAlign.Center,
-                                    letterSpacing = 0.5.sp,
+                                    letterSpacing = 0.8.sp,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)

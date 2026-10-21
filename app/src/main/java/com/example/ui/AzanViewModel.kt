@@ -321,7 +321,7 @@ class AzanViewModel(
             lastSyncStatusMessage = syncMsg,
             splashShown = splashShown
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UIState())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, UIState(isSetupCompleted = prefs.isSetupCompletedSync()))
 
     fun setRestoredTaqwaPoints(points: Int) {
         viewModelScope.launch {

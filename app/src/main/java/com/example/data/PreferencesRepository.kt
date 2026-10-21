@@ -32,11 +32,33 @@ class PreferencesRepository(private val context: Context) {
         }
     }
 
+    fun isSetupCompletedSync(): Boolean {
+        return try {
+            context.getSharedPreferences("azan_core_prefs", Context.MODE_PRIVATE)
+                .getBoolean("setup_completed", false)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     val isSetupCompletedFlow: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_SETUP_COMPLETED] ?: false
+        val dsVal = prefs[KEY_SETUP_COMPLETED]
+        if (dsVal != null) {
+            dsVal
+        } else {
+            isSetupCompletedSync()
+        }
     }
 
     suspend fun setSetupCompleted(completed: Boolean) {
+        try {
+            context.getSharedPreferences("azan_core_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("setup_completed", completed)
+                .commit()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         context.dataStore.edit { prefs ->
             prefs[KEY_SETUP_COMPLETED] = completed
         }
