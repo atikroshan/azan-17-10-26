@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,10 +80,9 @@ fun FirstTimeSetupScreen(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchFocused by remember { mutableStateOf(false) }
 
-    // In Change mode: start with currently set masjid.
-    // In First-Time setup: start as null so top card displays Main App Logo until user selects a masjid!
-    var userSelectedMasjid by remember(uiState.selectedMasjid, isChangeMode) {
-        mutableStateOf(if (isChangeMode) uiState.selectedMasjid else null)
+    // Starts as null so FINISH button is disabled until a slot is selected from search results
+    var userSelectedMasjid by remember {
+        mutableStateOf<MasjidItem?>(null)
     }
 
     val hasQuery = searchQuery.trim().isNotBlank()
@@ -298,6 +298,25 @@ fun FirstTimeSetupScreen(
                                         .fillMaxWidth()
                                         .padding(horizontal = 8.dp)
                                 )
+                                // PUNCHLINE
+                                val punchline = when (uiState.language) {
+                                    "ur" -> "آپ کی نمازوں کا بااعتماد ساتھی"
+                                    "hi" -> "आपकी नमाज़ों का सच्चा साथी"
+                                    else -> "Your Faithful Prayer Companion"
+                                }
+                                Text(
+                                    text = punchline,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    fontFamily = FontFamily.SansSerif,
+                                    color = Color(0xFFF2CA50).copy(alpha = 0.85f),
+                                    textAlign = TextAlign.Center,
+                                    letterSpacing = 0.5.sp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
+                                        .padding(top = 4.dp)
+                                )
                             }
                         }
                     }
@@ -333,81 +352,33 @@ fun FirstTimeSetupScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // ACTION BUTTONS: CANCEL & FINISH
-                Row(
+                // ACTION BUTTON: FINISH
+                val isFinishEnabled = activeMasjid != null
+                Button(
+                    onClick = {
+                        val chosen = activeMasjid ?: uiState.selectedMasjid
+                        onSelectMasjid(chosen)
+                        onFinishSetup(chosen.id)
+                    },
+                    enabled = isFinishEnabled,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isFinishEnabled) Color(0xFFF2CA50) else Color(0xFF1E2836).copy(alpha = 0.50f),
+                        contentColor = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
+                        disabledContainerColor = Color(0xFF1E2836).copy(alpha = 0.50f),
+                        disabledContentColor = Color(0xFF64748B)
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    elevation = if (isFinishEnabled) ButtonDefaults.buttonElevation(defaultElevation = 4.dp) else ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(50.dp)
                 ) {
-                    // CANCEL BUTTON (Always present as requested: "search bar cancel")
-                    OutlinedButton(
-                        onClick = {
-                            if (onBack != null) {
-                                onBack()
-                            } else {
-                                // On 1st time install, CANCEL proceeds directly with default masjid
-                                onFinishSetup(uiState.selectedMasjid.id)
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(1.dp, Color(0xFF475569)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color(0xFF1E293B).copy(alpha = 0.60f),
-                            contentColor = Color(0xFFCBD5E1)
-                        )
-                    ) {
-                        Text(
-                            text = "CANCEL",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 0.8.sp
-                        )
-                    }
-
-                    // FINISH BUTTON
-                    val isFinishEnabled = activeMasjid != null
-                    Button(
-                        onClick = {
-                            val chosen = activeMasjid ?: uiState.selectedMasjid
-                            onSelectMasjid(chosen)
-                            onFinishSetup(chosen.id)
-                        },
-                        enabled = isFinishEnabled,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isFinishEnabled) Color(0xFFF2CA50) else Color(0xFF1E2836).copy(alpha = 0.50f),
-                            contentColor = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
-                            disabledContainerColor = Color(0xFF1E2836).copy(alpha = 0.50f),
-                            disabledContentColor = Color(0xFF64748B)
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        elevation = if (isFinishEnabled) ButtonDefaults.buttonElevation(defaultElevation = 4.dp) else ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                        modifier = Modifier
-                            .weight(1.25f)
-                            .height(50.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Finish",
-                                tint = if (isFinishEnabled) Color(0xFF241A00) else Color(0xFF64748B),
-                                modifier = Modifier.size(19.dp)
-                            )
-                            Text(
-                                text = "FINISH",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
-                            )
-                        }
-                    }
+                    Text(
+                        text = "FINISH",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
         }
@@ -564,7 +535,7 @@ private fun SearchResultsList(
                 Text(
                     text = "No masjid found for \"${searchQuery.trim()}\"",
                     fontSize = 13.5.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Normal,
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
@@ -587,7 +558,7 @@ private fun SearchResultsList(
             Text(
                 text = "MATCHING MASAJID (${matchedList.size})",
                 fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
                 color = Color(0xFFF2CA50),
                 letterSpacing = 0.8.sp
             )
@@ -646,7 +617,7 @@ private fun SearchResultsList(
                         Text(
                             text = item.getLocalizedName(language),
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Normal,
                             color = if (isSel) Color(0xFF86EFAC) else Color.White
                         )
                         val itemLoc = listOf(
@@ -692,7 +663,7 @@ private fun SearchResultsList(
                         Text(
                             text = "#${item.id}",
                             fontSize = 10.5.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Normal,
                             color = Color(0xFFF2CA50)
                         )
                     }

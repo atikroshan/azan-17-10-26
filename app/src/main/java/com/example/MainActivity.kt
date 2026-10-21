@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.ui.FirstTimeSetupScreen
+import com.example.ui.HtmlSplashScreen
 import com.example.data.GoogleSheetMasjidSync
 import com.example.util.AppUpdateManager
 import com.example.util.UpdateInfo
@@ -72,6 +73,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -279,6 +281,7 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
     var showAdminLoginDialog by remember { mutableStateOf(false) }
     var showAdminPanel by remember { mutableStateOf(false) }
     var showMasjidSelectorScreen by remember { mutableStateOf(false) }
+    var showSplash by remember { mutableStateOf(true) }
     var ramazanTapCount by remember { mutableIntStateOf(0) }
     var forcedRamazanActive by remember { mutableStateOf(false) }
     val effectiveRamazanActive = isRamazanActive || forcedRamazanActive
@@ -335,7 +338,9 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
         else -> "Ramazan"
     }
 
-    if (showMasjidSelectorScreen) {
+    if (showSplash) {
+        HtmlSplashScreen(onFinished = { showSplash = false })
+    } else if (showMasjidSelectorScreen) {
         FirstTimeSetupScreen(
             uiState = uiState,
             onSelectMasjid = { masjid -> viewModel.selectMasjid(masjid.id) },
@@ -662,17 +667,10 @@ fun AzanHomeContent(
 
         LaunchedEffect(isPulledDown, maxPullDownPx) {
             val target = if (isPulledDown) maxPullDownPx else 0f
+            // Snap instantly when page opens or when returning from another screen (no slow crawl/drift)
             if (kotlin.math.abs(sheetOffsetY.value - target) > 1f) {
-                if (sheetOffsetY.value == 0f && isPulledDown) {
+                if (!sheetOffsetY.isRunning) {
                     sheetOffsetY.snapTo(target)
-                } else {
-                    sheetOffsetY.animateTo(
-                        targetValue = target,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
-                    )
                 }
             }
         }
@@ -715,9 +713,9 @@ fun AzanHomeContent(
                         }
                         sheetOffsetY.animateTo(
                             targetValue = target,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow
+                            animationSpec = tween(
+                                durationMillis = 260,
+                                easing = FastOutSlowInEasing
                             )
                         )
                     }
@@ -726,9 +724,9 @@ fun AzanHomeContent(
                     coroutineScope.launch {
                         sheetOffsetY.animateTo(
                             targetValue = if (isPulledDown) maxPullDownPx else 0f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow
+                            animationSpec = tween(
+                                durationMillis = 260,
+                                easing = FastOutSlowInEasing
                             )
                         )
                     }
@@ -789,9 +787,9 @@ fun AzanHomeContent(
                     sheetOffsetY.animateTo(
                         targetValue = target,
                         initialVelocity = available.y,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMediumLow
+                        animationSpec = tween(
+                            durationMillis = 260,
+                            easing = FastOutSlowInEasing
                         )
                     )
                     return Velocity.Zero
@@ -1163,12 +1161,13 @@ fun AzanHomeContent(
                     .size(44.dp)
                     .clickable {
                         coroutineScope.launch {
-                            val target = if (sheetOffsetY.value > 10f) 0f else maxPullDownPx
-                            isPulledDown = (target > 0f)
+                            val willSlideUp = sheetOffsetY.value > 10f
+                            val target = if (willSlideUp) 0f else maxPullDownPx
+                            isPulledDown = !willSlideUp
                             sheetOffsetY.animateTo(
                                 targetValue = target,
                                 animationSpec = tween(
-                                    durationMillis = 900,
+                                    durationMillis = 260,
                                     easing = androidx.compose.animation.core.FastOutSlowInEasing
                                 )
                             )
@@ -2723,7 +2722,8 @@ fun AzanJammatDisplay(
             Text(
                 text = azanFormatted,
                 fontSize = if (isNext) 12.sp else 10.5.sp,
-                fontWeight = if (isNext) FontWeight.Black else FontWeight.Bold,
+                fontWeight = FontWeight(900),
+                fontFamily = FontFamily.SansSerif,
                 color = if (isNext || isOngoing) Color(0xFFFFD700) else Color.White
             )
         }
@@ -2751,7 +2751,8 @@ fun AzanJammatDisplay(
             Text(
                 text = jammatFormatted,
                 fontSize = if (isNext) 12.sp else 10.5.sp,
-                fontWeight = if (isNext) FontWeight.Black else FontWeight.Bold,
+                fontWeight = FontWeight(900),
+                fontFamily = FontFamily.SansSerif,
                 color = if (isNext || isOngoing) Color(0xFF4ADE80) else Color(0xFFE2E8F0)
             )
         }
@@ -2811,7 +2812,7 @@ fun HighlightedAzanJammatDisplay(
                 text = strings.azanLabel.uppercase(),
                 fontSize = effectiveLabelSize,
                 fontWeight = FontWeight(900),
-                fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
+                fontFamily = FontFamily.SansSerif,
                 color = Color(0xFFF3DE8E),
                 letterSpacing = 0.5.sp,
                 maxLines = 1
@@ -2825,8 +2826,8 @@ fun HighlightedAzanJammatDisplay(
                     text = azanTimeStr,
                     fontSize = effectiveTimeSize,
                     fontWeight = FontWeight(900),
-                    fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
-                    letterSpacing = if (useRobotoBlack) (-0.5).sp else androidx.compose.ui.unit.TextUnit.Unspecified,
+                    fontFamily = FontFamily.SansSerif,
+                    letterSpacing = (-0.5).sp,
                     color = Color(0xFFFFD700),
                     maxLines = 1,
                     softWrap = false
@@ -2837,7 +2838,7 @@ fun HighlightedAzanJammatDisplay(
                         text = azanSuffix,
                         fontSize = effectiveSuffixSize,
                         fontWeight = FontWeight(900),
-                        fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
+                        fontFamily = FontFamily.SansSerif,
                         color = Color(0xFFFFD700).copy(alpha = 0.85f),
                         maxLines = 1,
                         softWrap = false,
@@ -2872,7 +2873,7 @@ fun HighlightedAzanJammatDisplay(
                 text = strings.jammatLabel.uppercase(),
                 fontSize = effectiveLabelSize,
                 fontWeight = FontWeight(900),
-                fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
+                fontFamily = FontFamily.SansSerif,
                 color = Color(0xFF86EFAC),
                 letterSpacing = 0.5.sp,
                 maxLines = 1
@@ -2886,8 +2887,8 @@ fun HighlightedAzanJammatDisplay(
                     text = jammatTimeStr,
                     fontSize = effectiveTimeSize,
                     fontWeight = FontWeight(900),
-                    fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
-                    letterSpacing = if (useRobotoBlack) (-0.5).sp else androidx.compose.ui.unit.TextUnit.Unspecified,
+                    fontFamily = FontFamily.SansSerif,
+                    letterSpacing = (-0.5).sp,
                     color = Color(0xFF4ADE80),
                     maxLines = 1,
                     softWrap = false
@@ -2898,7 +2899,7 @@ fun HighlightedAzanJammatDisplay(
                         text = jammatSuffix,
                         fontSize = effectiveSuffixSize,
                         fontWeight = FontWeight(900),
-                        fontFamily = if (useRobotoBlack) com.example.ui.theme.AppFontFamily else null,
+                        fontFamily = FontFamily.SansSerif,
                         color = Color(0xFF4ADE80).copy(alpha = 0.85f),
                         maxLines = 1,
                         softWrap = false,
@@ -2924,7 +2925,8 @@ fun PrayerTimeDisplay(time24: String, isNext: Boolean) {
         Text(
             text = timeStr,
             fontSize = if (isNext) 22.sp else 16.sp,
-            fontWeight = if (isNext) FontWeight.Black else FontWeight.Medium,
+            fontWeight = FontWeight(900),
+            fontFamily = FontFamily.SansSerif,
             style = androidx.compose.ui.text.TextStyle(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFFF3DE8E), Color(0xFFB37C3C))
@@ -2935,7 +2937,8 @@ fun PrayerTimeDisplay(time24: String, isNext: Boolean) {
             Text(
                 text = suffixStr,
                 fontSize = if (isNext) 14.sp else 10.sp,
-                fontWeight = if (isNext) FontWeight.Black else FontWeight.Medium,
+                fontWeight = FontWeight(900),
+                fontFamily = FontFamily.SansSerif,
                 color = if (isNext) MaterialTheme.colorScheme.secondary else TextMuted
             )
         }
