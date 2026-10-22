@@ -185,259 +185,220 @@ fun SupportScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 6.dp)
+                .padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 4.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Bar: Language Buttons (Right aligned)
+            // 1. Top Bar: Language Buttons (Homepage size & style)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                    .padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
-                // Same 3 language button copied from Home Page
                 LanguageCirclesRow(
                     currentLang = uiState.language,
                     onLangSelect = onLangSelect
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Main Scrollable Content matching the user reference screenshot
+            // 2. Top Center App Logo, AZAN TIME & Punchline (Preserving exact size)
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                modifier = Modifier.padding(vertical = 2.dp)
             ) {
-                // 1. Top Center App Logo & Title
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(top = 2.dp, bottom = 4.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(22.dp))
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Color(0xFF0E2F23), Color(0xFF061A13))
-                                )
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color(0xFF0E2F23), Color(0xFF061A13))
                             )
-                            .border(1.dp, Color(0xFFE5B842).copy(alpha = 0.5f), RoundedCornerShape(20.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.foreground),
-                            contentDescription = "Azan App Icon",
-                            modifier = Modifier.size(52.dp),
-                            contentScale = ContentScale.Fit
                         )
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Text(
-                        text = "AZAN TIME",
-                        fontFamily = GraenMetalFontFamily,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 2.sp,
-                        style = androidx.compose.ui.text.TextStyle(
-                            brush = GraenMetalGoldGradient,
-                            shadow = GraenMetalGoldShadow
-                        )
+                        .border(1.dp, Color(0xFFE5B842).copy(alpha = 0.5f), RoundedCornerShape(20.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.foreground),
+                        contentDescription = "Azan App Icon",
+                        modifier = Modifier.size(52.dp),
+                        contentScale = ContentScale.Fit
                     )
                 }
 
-                // 2. Divided 2-Column Slot: Left = Support & Feedback, Right = Request Add Masjid
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "AZAN TIME",
+                    fontFamily = GraenMetalFontFamily,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Normal,
+                    letterSpacing = 2.sp,
+                    style = androidx.compose.ui.text.TextStyle(
+                        brush = GraenMetalGoldGradient,
+                        shadow = GraenMetalGoldShadow
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // Normal font punchline under AZAN TIME
+                Text(
+                    text = "AAO ALLAH KI RAAH MEIN CHALE",
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Normal,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+                    color = Color(0xFFF2CA50).copy(alpha = 0.90f),
+                    letterSpacing = 0.8.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            // 3. Divided 2-Column Slot: Support & Feedback / Request Add Masjid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Left: Support & Feedback (WhatsApp)
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(58.dp)
+                        .clickable { openWhatsApp() },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF091712)),
+                    border = BorderStroke(1.dp, Color(0xFF1B3B2E))
                 ) {
-                    // Left Column: Support & Feedback (Instant WhatsApp)
-                    Card(
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 115.dp)
-                            .clickable { openWhatsApp() },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF091712)),
-                        border = BorderStroke(1.dp, Color(0xFF1B3B2E))
+                            .fillMaxSize()
+                            .padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 6.dp, vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            // Clean WhatsApp icon without any surrounding green dot/circle
-                            Box(
-                                modifier = Modifier.size(34.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_whatsapp),
-                                    contentDescription = "WhatsApp",
-                                    modifier = Modifier.size(30.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_whatsapp),
+                            contentDescription = "WhatsApp",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
                             Text(
                                 text = when (uiState.language) {
                                     "ur" -> "سپورٹ اور فیڈبیک"
                                     "hi" -> "सपोर्ट और सुझाव"
                                     else -> "Support & Feedback"
                                 },
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
-                                textAlign = TextAlign.Center,
                                 maxLines = 1
                             )
-                            Spacer(modifier = Modifier.height(3.dp))
                             Text(
                                 text = when (uiState.language) {
                                     "ur" -> "فوری واٹس ایپ"
                                     "hi" -> "इंस्टेंट व्हाट्सएप"
                                     else -> "Instant WhatsApp"
                                 },
-                                fontSize = 11.sp,
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF4ADE80),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1
-                            )
-                        }
-                    }
-
-                    // Right Column: Request Add Masjid (Submit Local Timings)
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 115.dp)
-                            .clickable { showAddMasjidDialog = true },
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF091712)),
-                        border = BorderStroke(1.dp, Color(0xFF1B3B2E))
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 6.dp, vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Box(
-                                modifier = Modifier.size(34.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Mosque,
-                                    contentDescription = "Request Add Masjid",
-                                    tint = primaryGold,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = when (uiState.language) {
-                                    "ur" -> "نئی مسجد شامل کریں"
-                                    "hi" -> "नई मस्जिद जोड़ें"
-                                    else -> "Request Add Masjid"
-                                },
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1
-                            )
-                            Spacer(modifier = Modifier.height(3.dp))
-                            Text(
-                                text = when (uiState.language) {
-                                    "ur" -> "اوقاتِ نماز درج کریں"
-                                    "hi" -> "लोकल टाइमिंग भेजें"
-                                    else -> "Submit Local Timings"
-                                },
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFE5B842),
-                                textAlign = TextAlign.Center,
                                 maxLines = 1
                             )
                         }
                     }
                 }
 
-                // 3. Change Slot (Selected Masjid & Change Button)
-                MasjidSelectorDropdown(
-                    selectedMasjid = uiState.selectedMasjid,
-                    allMasajid = uiState.allMasajid,
-                    language = uiState.language,
-                    onSelectMasjid = onSelectMasjid,
-                    onLanguageSelect = onLangSelect,
-                    onChangeClick = onChangeMasjid,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                // 4. Main Donation Card (Sadaqah Jariyah)
+                // Right: Request Add Masjid
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF071711)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(58.dp)
+                        .clickable { showAddMasjidDialog = true },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF091712)),
                     border = BorderStroke(1.dp, Color(0xFF1B3B2E))
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxSize()
+                            .padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        // Sadaqah Jariyah Pill Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .background(Color(0xFF162D22))
-                                .border(1.dp, Color(0xFF2E533F), RoundedCornerShape(50))
-                                .padding(horizontal = 14.dp, vertical = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Mosque,
+                            contentDescription = "Request Add Masjid",
+                            tint = primaryGold,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
                             Text(
-                                text = "SADAQAH JARIYAH",
+                                text = when (uiState.language) {
+                                    "ur" -> "نئی مسجد شامل کریں"
+                                    "hi" -> "नई मस्जिद जोड़ें"
+                                    else -> "Request Add Masjid"
+                                },
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = primaryGold,
-                                letterSpacing = 1.sp
+                                color = Color.White,
+                                maxLines = 1
+                            )
+                            Text(
+                                text = when (uiState.language) {
+                                    "ur" -> "اوقاتِ نماز درج کریں"
+                                    "hi" -> "लोकल टाइमिंग भेजें"
+                                    else -> "Submit Local Timings"
+                                },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFE5B842),
+                                maxLines = 1
                             )
                         }
+                    }
+                }
+            }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+            // 4. Change Slot (Selected Masjid)
+            MasjidSelectorDropdown(
+                selectedMasjid = uiState.selectedMasjid,
+                allMasajid = uiState.allMasajid,
+                language = uiState.language,
+                onSelectMasjid = onSelectMasjid,
+                onLanguageSelect = onLangSelect,
+                onChangeClick = onChangeMasjid,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                        // Heading
-                        Text(
-                            text = "SCAN OR TAP ON THE AMOUNT TO DONATE",
-                            fontSize = 13.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryGold,
-                            textAlign = TextAlign.Center,
-                            letterSpacing = 1.1.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // QR Code in Rounded White Card
+            // 5. Main Donation Card (Sadaqah Jariyah: QR Code on Left, Amounts & UPI on Right)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF071711)),
+                border = BorderStroke(1.dp, Color(0xFF1B3B2E))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Left: QR Code
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable { showUpiAppChooserDialog = true }
+                    ) {
                         Box(
                             modifier = Modifier
-                                .size(210.dp)
-                                .clip(RoundedCornerShape(20.dp))
+                                .size(92.dp)
                                 .background(Color.White)
-                                .border(1.5.dp, primaryGold.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
-                                .padding(10.dp),
+                                .border(1.dp, primaryGold.copy(alpha = 0.6f))
+                                .padding(4.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
@@ -447,61 +408,66 @@ fun SupportScreen(
                                 contentScale = ContentScale.Fit
                             )
                         }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Scan or Tap QR",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = primaryGold
+                        )
+                    }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Scan with UPI Apps
+                    // Right: Sadaqah Jariyah, Amounts & UPI button
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            androidx.compose.foundation.Canvas(modifier = Modifier.size(13.dp)) {
-                                drawRect(color = primaryGold, style = Stroke(width = 1.4.dp.toPx()))
-                                drawRect(
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(Color(0xFF162D22))
+                                    .border(0.8.dp, Color(0xFF2E533F), RoundedCornerShape(50))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "SADAQAH JARIYAH",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
                                     color = primaryGold,
-                                    size = androidx.compose.ui.geometry.Size(size.width * 0.45f, size.height * 0.45f),
-                                    topLeft = androidx.compose.ui.geometry.Offset(size.width * 0.275f, size.height * 0.275f)
+                                    letterSpacing = 0.5.sp
                                 )
                             }
-                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Scan with Google Pay, PhonePe, or Paytm",
-                                fontSize = 11.5.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = primaryGold
+                                text = "Donate",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF4ADE80)
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Contribution Amount Section
-                        Text(
-                            text = "Choose a Contribution Amount",
-                            fontSize = 11.5.sp,
-                            color = Color.White.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // 5 Buttons: ₹50, ₹100, ₹250, ₹500, Other
+                        // Amounts
                         val amounts = listOf(50, 100, 250, 500)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             amounts.forEach { amt ->
                                 val isSelected = selectedContributionAmount == amt
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(38.dp)
-                                        .clip(RoundedCornerShape(10.dp))
+                                        .height(28.dp)
+                                        .clip(RoundedCornerShape(6.dp))
                                         .background(if (isSelected) Color(0xFFE5B842) else Color(0xFF0F261C))
                                         .border(
                                             width = 1.dp,
                                             color = if (isSelected) Color(0xFFFFE082) else Color(0xFF224836),
-                                            shape = RoundedCornerShape(10.dp)
+                                            shape = RoundedCornerShape(6.dp)
                                         )
                                         .clickable {
                                             selectedContributionAmount = amt
@@ -511,234 +477,132 @@ fun SupportScreen(
                                 ) {
                                     Text(
                                         text = "₹$amt",
-                                        fontSize = 12.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isSelected) Color(0xFF0F1713) else primaryGold
                                     )
                                 }
                             }
 
-                            // 5th Button: Other
                             val isOtherSelected = !amounts.contains(selectedContributionAmount)
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(38.dp)
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .height(28.dp)
+                                    .clip(RoundedCornerShape(6.dp))
                                     .background(if (isOtherSelected) Color(0xFFE5B842) else Color(0xFF0F261C))
                                     .border(
                                         width = 1.dp,
                                         color = if (isOtherSelected) Color(0xFFFFE082) else Color(0xFF224836),
-                                        shape = RoundedCornerShape(10.dp)
+                                        shape = RoundedCornerShape(6.dp)
                                     )
-                                    .clickable {
-                                        showOtherAmountDialog = true
-                                    },
+                                    .clickable { showOtherAmountDialog = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = if (isOtherSelected) "₹$selectedContributionAmount" else "Other",
-                                    fontSize = 12.sp,
+                                    fontSize = 9.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isOtherSelected) Color(0xFF0F1713) else primaryGold
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Pay via UPI App button - Opens 3 App Options (Google Pay, PhonePe, Paytm)
+                        // Pay UPI Button
                         Button(
                             onClick = { showUpiAppChooserDialog = true },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF123425)),
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(8.dp),
                             border = BorderStroke(1.dp, primaryGold.copy(alpha = 0.45f)),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(38.dp)
+                                .height(30.dp)
                         ) {
                             Text(
-                                text = "Pay ₹$selectedContributionAmount via UPI (GooglePay, PhonePe, Paytm)",
-                                fontSize = 11.5.sp,
+                                text = "Pay ₹$selectedContributionAmount via UPI (GPay, PhonePe, Paytm)",
+                                fontSize = 9.5.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = primaryGold
-                            )
-                        }
-                    }
-                }
-
-                // 4. Rating & Share App Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF071711)),
-                    border = BorderStroke(1.dp, Color(0xFF1B3B2E))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp)
-                    ) {
-                        // Top Row: Rate Us Button (Left) & User Given Stars (Right / Beside it)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            // Rate Us Button
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(50))
-                                    .background(Color(0xFF1A271B))
-                                    .border(1.dp, Color(0xFFE5B842).copy(alpha = 0.5f), RoundedCornerShape(50))
-                                    .clickable { showRateUsDialog = true }
-                                    .padding(horizontal = 14.dp, vertical = 6.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Rate Us →",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = primaryGold
-                                )
-                            }
-
-                            // Beside Rate Us: Given star rating
-                            if (userRating > 0.0) {
-                                val starCount = userRating.toInt().coerceIn(1, 5)
-                                val starEmojis = "⭐".repeat(starCount)
-                                Text(
-                                    text = "$starEmojis (${String.format(Locale.US, "%.1f", userRating)} ★)",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF34D399)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Below Rate Us: App Rating Section (Centered)
-                        val appRatingDisplay = if (averageRating > 0.0) averageRating else 4.8
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "APP RATING",
-                                fontSize = 11.5.sp,
-                                fontWeight = FontWeight.ExtraBold,
                                 color = primaryGold,
-                                letterSpacing = 1.2.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(3.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = String.format(Locale.US, "%.1f", appRatingDisplay),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                // 5 Golden App Rating Stars
-                                Row(horizontalArrangement = Arrangement.spacedBy(2.5.dp)) {
-                                    for (i in 1..5) {
-                                        val fillRatio = when {
-                                            appRatingDisplay >= i -> 1f
-                                            appRatingDisplay >= i - 0.5 -> 0.5f
-                                            else -> 0f
-                                        }
-                                        StarIconDisplay(fillRatio = fillRatio, size = 16.dp)
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(3.dp))
-
-                            // Below App Rating: Trusted by 1000+ worshippers
-                            Text(
-                                text = "Trusted by 1000+ worshippers",
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.65f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Share App & Earn Sawab Button (Disabled as requested)
-                        Button(
-                            onClick = { /* Disabled */ },
-                            enabled = false,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF0F3B29),
-                                disabledContainerColor = Color(0xFF0F3B29).copy(alpha = 0.45f),
-                                contentColor = Color.White,
-                                disabledContentColor = Color.White.copy(alpha = 0.45f)
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.25f)),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(46.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = Color(0xFF34D399).copy(alpha = 0.45f),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Share App & Earn Sawab (Disabled)",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.40f)
+                                maxLines = 1
                             )
                         }
                     }
                 }
-
-                // 5. Version Pill Badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(Color(0xFF0A1B1F))
-                        .border(1.dp, Color(0xFF163E44), RoundedCornerShape(50))
-                        .padding(horizontal = 14.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(Color(0xFF10B981), CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Version v${BuildConfig.VERSION_NAME}",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF6EE7B7)
-                        )
-                    }
-                }
-
-                // 6. Devotion Footer
-                Text(
-                    text = "Made with devotion • Powered by @tek",
-                    fontSize = 11.5.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = primaryGold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
             }
+
+            // 6. Rating Summary Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF071711)),
+                border = BorderStroke(1.dp, Color(0xFF1B3B2E))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(Color(0xFF1A271B))
+                            .border(1.dp, Color(0xFFE5B842).copy(alpha = 0.5f), RoundedCornerShape(50))
+                            .clickable { showRateUsDialog = true }
+                            .padding(horizontal = 12.dp, vertical = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Rate Us →",
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryGold
+                        )
+                    }
+
+                    val appRatingDisplay = if (averageRating > 0.0) averageRating else 4.8
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = String.format(Locale.US, "%.1f", appRatingDisplay),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(1.5.dp)) {
+                            for (i in 1..5) {
+                                val fillRatio = when {
+                                    appRatingDisplay >= i -> 1f
+                                    appRatingDisplay >= i - 0.5 -> 0.5f
+                                    else -> 0f
+                                }
+                                StarIconDisplay(fillRatio = fillRatio, size = 13.dp)
+                            }
+                        }
+                        Text(
+                            text = "• 1000+ users",
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.65f)
+                        )
+                    }
+                }
+            }
+
+            // 7. Footer: Version & Devotion combined in center
+            Text(
+                text = "Made with devotion • v${BuildConfig.VERSION_NAME} • Powered by @tek",
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.Medium,
+                color = primaryGold.copy(alpha = 0.85f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp)
+            )
         }
     }
 

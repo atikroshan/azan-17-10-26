@@ -281,6 +281,7 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
     var showAdminLoginDialog by remember { mutableStateOf(false) }
     var showAdminPanel by remember { mutableStateOf(false) }
     var showMasjidSelectorScreen by remember { mutableStateOf(false) }
+    var showSplash by remember { mutableStateOf(true) }
     var ramazanTapCount by remember { mutableIntStateOf(0) }
     var forcedRamazanActive by remember { mutableStateOf(false) }
     val effectiveRamazanActive = isRamazanActive || forcedRamazanActive
@@ -332,7 +333,10 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
     }
 
     val showSetup = !uiState.isSetupCompleted || showMasjidSelectorScreen
-    if (showSetup) {
+
+    if (showSplash) {
+        HtmlSplashScreen(onFinished = { showSplash = false })
+    } else if (showSetup) {
         FirstTimeSetupScreen(
             uiState = uiState,
             onSelectMasjid = { masjid -> viewModel.selectMasjid(masjid.id) },
@@ -2997,8 +3001,8 @@ fun AdminLoginDialog(
     val defaultAdminId = curMasjid?.adminId?.trim().takeUnless { it.isNullOrBlank() } ?: "admin"
     val defaultPassword = curMasjid?.adminPassword?.trim().takeUnless { it.isNullOrBlank() } ?: "admin"
 
-    var adminId by remember { mutableStateOf(defaultAdminId) }
-    var password by remember { mutableStateOf(defaultPassword) }
+    var adminId by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var isError by remember { mutableStateOf(false) }
 
     Dialog(
@@ -3056,7 +3060,7 @@ fun AdminLoginDialog(
                         isError = false
                     },
                     label = { Text("Admin ID") },
-                    placeholder = { Text("admin") },
+                    placeholder = { Text("Enter ID") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
@@ -3078,7 +3082,7 @@ fun AdminLoginDialog(
                         isError = false
                     },
                     label = { Text("Password") },
-                    placeholder = { Text("••••") },
+                    placeholder = { Text("Enter Password") },
                     singleLine = true,
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
