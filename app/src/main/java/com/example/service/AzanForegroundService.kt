@@ -27,12 +27,49 @@ class AzanForegroundService : Service() {
     private var telephonyManager: TelephonyManager? = null
     private var phoneStateListener: TelephonyCallback? = null
 
+    private var isPowerReceiverRegistered = false
+    private var lastPowerPressTime = 0L
+    private var powerPressCount = 0
+
+    private val powerButtonReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.action
+            if (action == Intent.ACTION_SCREEN_OFF || action == Intent.ACTION_SCREEN_ON) {
+                if (isPlayingAzan.value) {
+                    val now = System.currentTimeMillis()
+                    if (now - lastPowerPressTime <= 2500L) {
+                        powerPressCount++
+                    } else {
+                        powerPressCount = 1
+                    }
+                    lastPowerPressTime = now
+                    android.util.Log.d("AzanForegroundService", "Power button toggle: action=$action, count=$powerPressCount")
+                    if (powerPressCount >= 2) {
+                        android.util.Log.d("AzanForegroundService", "Double power button press detected while locked! Stopping audio.")
+                        powerPressCount = 0
+                        lastPowerPressTime = 0L
+                        stopAzanAudio()
+                    }
+                }
+            }
+        }
+    }
+
     companion object {
         var serviceInstance: AzanForegroundService? = null
         val isPlayingAzan = MutableStateFlow(false)
         val currentPlayingPrayerName = MutableStateFlow<String?>(null)
         val lastAudioFinishedTime = MutableStateFlow(0L)
         val lastAudioPrayerIndex = MutableStateFlow(-1)
+
+        fun silenceService(context: Context) {
+            try {
+                serviceInstance?.silenceAudio()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+            stopService(context)
+        }
 
         fun stopService(context: Context) {
             try {
@@ -98,6 +135,20 @@ class AzanForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         setupCallListener()
+        setupPowerButtonListener()
+    }
+
+    private fun setupPowerButtonListener() {
+        try {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+            }
+            registerReceiver(powerButtonReceiver, filter)
+            isPowerReceiverRegistered = true
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun setupCallListener() {
@@ -128,6 +179,18 @@ class AzanForegroundService : Service() {
         }
     }
 
+    fun silenceAudio() {
+        try {
+            mediaPlayer?.setVolume(0f, 0f)
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+        stopAzanAudio()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         serviceInstance = this
         initFromPrefs(this)
@@ -137,8 +200,8 @@ class AzanForegroundService : Service() {
             lastAudioPrayerIndex.value = pIdx
         }
 
-        if (intent?.action == "STOP_AZAN") {
-            stopAzanAudio()
+        if (intent?.action == "STOP_AZAN" || intent?.action == "SILENCE_AZAN") {
+            silenceAudio()
             return START_NOT_STICKY
         }
 
@@ -150,6 +213,11 @@ class AzanForegroundService : Service() {
             action = "STOP_AZAN"
         }
         val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val silenceIntent = Intent(this, AzanForegroundService::class.java).apply {
+            action = "SILENCE_AZAN"
+        }
+        val silencePendingIntent = PendingIntent.getService(this, 1, silenceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val mainIntent = Intent(this, MainActivity::class.java).apply {
             putExtra("FROM_ALARM", true)
@@ -169,6 +237,7 @@ class AzanForegroundService : Service() {
             .setContentIntent(mainPendingIntent)
             .setFullScreenIntent(mainPendingIntent, true)
             .addAction(R.mipmap.ic_launcher, "Stop", stopPendingIntent)
+            .addAction(R.mipmap.ic_launcher, "Silent", silencePendingIntent)
             .setOngoing(true)
             .build()
             
@@ -355,6 +424,15 @@ class AzanForegroundService : Service() {
         super.onDestroy()
         if (serviceInstance == this) {
             serviceInstance = null
+        }
+        
+        if (isPowerReceiverRegistered) {
+            try {
+                unregisterReceiver(powerButtonReceiver)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            isPowerReceiverRegistered = false
         }
         
         // Release wake lock if held

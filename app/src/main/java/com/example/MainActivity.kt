@@ -263,6 +263,18 @@ class MainActivity : ComponentActivity() {
         wakeAndShowOverLock()
     }
 
+    override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent?): Boolean {
+        if (com.example.service.AzanForegroundService.isPlayingAzan.value) {
+            if (keyCode == android.view.KeyEvent.KEYCODE_POWER ||
+                keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN ||
+                keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP) {
+                com.example.service.AzanForegroundService.stopService(this)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
 }
 
 @Composable
@@ -868,10 +880,24 @@ fun AzanHomeContent(
                                 containerColor = Color(0xFFDC2626),
                                 contentColor = Color.White
                             ),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+
+                        Button(
+                            onClick = {
+                                com.example.service.AzanForegroundService.silenceService(context)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4B5563),
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Silent", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
 
@@ -1931,18 +1957,37 @@ fun AzanList(
                             )
                         }
                     }
-                    Button(
-                        onClick = {
-                            com.example.service.AzanForegroundService.stopService(context)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFDC2626),
-                            contentColor = Color.White
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(8.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Button(
+                            onClick = {
+                                com.example.service.AzanForegroundService.stopService(context)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFDC2626),
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Stop", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Button(
+                            onClick = {
+                                com.example.service.AzanForegroundService.silenceService(context)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4B5563),
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Silent", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
