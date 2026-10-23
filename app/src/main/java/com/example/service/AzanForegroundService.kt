@@ -68,7 +68,6 @@ class AzanForegroundService : Service() {
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
-            stopService(context)
         }
 
         fun stopService(context: Context) {
@@ -182,13 +181,9 @@ class AzanForegroundService : Service() {
     fun silenceAudio() {
         try {
             mediaPlayer?.setVolume(0f, 0f)
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.pause()
-            }
         } catch (e: Throwable) {
             e.printStackTrace()
         }
-        stopAzanAudio()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -200,7 +195,11 @@ class AzanForegroundService : Service() {
             lastAudioPrayerIndex.value = pIdx
         }
 
-        if (intent?.action == "STOP_AZAN" || intent?.action == "SILENCE_AZAN") {
+        if (intent?.action == "STOP_AZAN") {
+            stopAzanAudio()
+            return START_NOT_STICKY
+        }
+        if (intent?.action == "SILENCE_AZAN") {
             silenceAudio()
             return START_NOT_STICKY
         }
