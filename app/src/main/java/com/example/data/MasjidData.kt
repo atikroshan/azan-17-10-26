@@ -71,7 +71,7 @@ object MasjidRepository {
         area = "Swagat Nagar",
         city = "Solapur",
         state = "Maharashtra",
-        photoUrl = "https://lh3.googleusercontent.com/d/1QP6elu7nlZwmrxjG4p-eyZWOrEaEdiwo=w1000",
+        photoUrl = "https://lh3.googleusercontent.com/d/1QP6elu7nlZwmrxjG4p-eyZWOrEaEdiwo=w600-rw",
         jumahAzanTime = "12:30",
         jumahJammatTime = "13:30",
         fajrAzanFixed = "05:40",

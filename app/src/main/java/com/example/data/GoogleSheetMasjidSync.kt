@@ -58,15 +58,18 @@ Password,9595996629,,,,,
     fun extractGoogleDriveDirectUrl(rawUrl: String): String {
         val clean = rawUrl.trim()
         if (clean.isBlank()) return ""
+        if (clean.contains("lh3.googleusercontent.com")) {
+            return clean.replace("=w1000", "=w600-rw")
+        }
         val idRegex = "(?:/file/d/|/d/|id=)([-_a-zA-Z0-9]{20,})".toRegex()
         val match = idRegex.find(clean)?.groupValues?.getOrNull(1)
         if (match != null) {
-            return "https://lh3.googleusercontent.com/d/$match=w1000"
+            return "https://lh3.googleusercontent.com/d/$match=w600-rw"
         }
         val fallbackRegex = "[-_a-zA-Z0-9]{25,}".toRegex()
         val fallbackMatch = fallbackRegex.findAll(clean).lastOrNull()?.value
         return if (fallbackMatch != null) {
-            "https://lh3.googleusercontent.com/d/$fallbackMatch=w1000"
+            "https://lh3.googleusercontent.com/d/$fallbackMatch=w600-rw"
         } else {
             clean
         }

@@ -183,6 +183,27 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         }
 
+        try {
+            val imageLoader = coil.ImageLoader.Builder(applicationContext)
+                .memoryCache {
+                    coil.memory.MemoryCache.Builder(applicationContext)
+                        .maxSizePercent(0.30)
+                        .build()
+                }
+                .diskCache {
+                    coil.disk.DiskCache.Builder()
+                        .directory(applicationContext.cacheDir.resolve("image_cache"))
+                        .maxSizeBytes(100L * 1024 * 1024)
+                        .build()
+                }
+                .respectCacheHeaders(false)
+                .crossfade(true)
+                .build()
+            coil.Coil.setImageLoader(imageLoader)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             splashScreen.setOnExitAnimationListener { splashScreenView ->
                 splashScreenView.remove()
@@ -293,7 +314,7 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
     var showAdminLoginDialog by remember { mutableStateOf(false) }
     var showAdminPanel by remember { mutableStateOf(false) }
     var showMasjidSelectorScreen by remember { mutableStateOf(false) }
-    var showSplash by remember { mutableStateOf(true) }
+    var showSplash by remember { mutableStateOf(false) }
     var ramazanTapCount by remember { mutableIntStateOf(0) }
     var forcedRamazanActive by remember { mutableStateOf(false) }
     val effectiveRamazanActive = isRamazanActive || forcedRamazanActive
@@ -344,22 +365,9 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
         else -> "Ramazan"
     }
 
-    val showSetup = !uiState.isSetupCompleted || showMasjidSelectorScreen
+    val showSetup = false
 
-    if (showSplash) {
-        HtmlSplashScreen(onFinished = { showSplash = false })
-    } else if (showSetup) {
-        FirstTimeSetupScreen(
-            uiState = uiState,
-            onSelectMasjid = { masjid -> viewModel.selectMasjid(masjid.id) },
-            onFinishSetup = { masjidId ->
-                viewModel.completeSetup(masjidId)
-                showMasjidSelectorScreen = false
-            },
-            onBack = if (uiState.isSetupCompleted) { { showMasjidSelectorScreen = false } } else null,
-            onRefresh = { viewModel.syncGoogleSheet() }
-        )
-    } else if (showAdminPanel) {
+    if (showAdminPanel) {
         BackHandler { showAdminPanel = false }
         AdminPanelScreen(
             viewModel = viewModel,
