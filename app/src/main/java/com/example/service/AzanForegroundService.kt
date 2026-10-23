@@ -58,13 +58,14 @@ class AzanForegroundService : Service() {
     companion object {
         var serviceInstance: AzanForegroundService? = null
         val isPlayingAzan = MutableStateFlow(false)
+        val isMuted = MutableStateFlow(false)
         val currentPlayingPrayerName = MutableStateFlow<String?>(null)
         val lastAudioFinishedTime = MutableStateFlow(0L)
         val lastAudioPrayerIndex = MutableStateFlow(-1)
 
-        fun silenceService(context: Context) {
+        fun toggleMuteService(context: Context) {
             try {
-                serviceInstance?.silenceAudio()
+                serviceInstance?.toggleMuteAudio()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }
@@ -178,9 +179,59 @@ class AzanForegroundService : Service() {
         }
     }
 
-    fun silenceAudio() {
+    fun toggleMuteAudio() {
         try {
-            mediaPlayer?.setVolume(0f, 0f)
+            val nextMuted = !isMuted.value
+            isMuted.value = nextMuted
+            if (nextMuted) {
+                mediaPlayer?.setVolume(0f, 0f)
+            } else {
+                mediaPlayer?.setVolume(1f, 1f)
+            }
+            updateNotification()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun updateNotification() {
+        try {
+            val azanName = currentPlayingPrayerName.value ?: "Azan"
+            val stopIntent = Intent(this, AzanForegroundService::class.java).apply {
+                action = "STOP_AZAN"
+            }
+            val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+            val muteIntent = Intent(this, AzanForegroundService::class.java).apply {
+                action = "MUTE_TOGGLE"
+            }
+            val mutePendingIntent = PendingIntent.getService(this, 1, muteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+            val muteLabel = if (isMuted.value) "Unmute" else "Mute"
+
+            val mainIntent = Intent(this, MainActivity::class.java).apply {
+                putExtra("FROM_ALARM", true)
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                )
+            }
+            val mainPendingIntent = PendingIntent.getActivity(this, 0, mainIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+            val notification = NotificationCompat.Builder(this, "azan_channel")
+                .setContentTitle("It's time for $azanName")
+                .setContentText(if (isMuted.value) "Azan is muted" else "Azan is playing")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(mainPendingIntent)
+                .addAction(R.mipmap.ic_launcher, "Stop", stopPendingIntent)
+                .addAction(R.mipmap.ic_launcher, muteLabel, mutePendingIntent)
+                .setOngoing(true)
+                .build()
+
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            nm?.notify(1, notification)
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -199,11 +250,12 @@ class AzanForegroundService : Service() {
             stopAzanAudio()
             return START_NOT_STICKY
         }
-        if (intent?.action == "SILENCE_AZAN") {
-            silenceAudio()
+        if (intent?.action == "MUTE_TOGGLE") {
+            toggleMuteAudio()
             return START_NOT_STICKY
         }
 
+        isMuted.value = false
         currentPlayingPrayerName.value = azanName
         
         createNotificationChannel()
@@ -213,10 +265,13 @@ class AzanForegroundService : Service() {
         }
         val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val silenceIntent = Intent(this, AzanForegroundService::class.java).apply {
-            action = "SILENCE_AZAN"
+        val muteIntent = Intent(this, AzanForegroundService::class.java).apply {
+            action = "MUTE_TOGGLE"
         }
-        val silencePendingIntent = PendingIntent.getService(this, 1, silenceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val mutePendingIntent = PendingIntent.getService(this, 1, muteIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val currentMuted = isMuted.value
+        val muteLabel = if (currentMuted) "Unmute" else "Mute"
 
         val mainIntent = Intent(this, MainActivity::class.java).apply {
             putExtra("FROM_ALARM", true)
@@ -236,7 +291,7 @@ class AzanForegroundService : Service() {
             .setContentIntent(mainPendingIntent)
             .setFullScreenIntent(mainPendingIntent, true)
             .addAction(R.mipmap.ic_launcher, "Stop", stopPendingIntent)
-            .addAction(R.mipmap.ic_launcher, "Silent", silencePendingIntent)
+            .addAction(R.mipmap.ic_launcher, muteLabel, mutePendingIntent)
             .setOngoing(true)
             .build()
             
@@ -274,6 +329,7 @@ class AzanForegroundService : Service() {
 
     fun stopAzanAudio() {
         isPlayingAzan.value = false
+        isMuted.value = false
         currentPlayingPrayerName.value = null
         recordAudioFinished(this, System.currentTimeMillis(), lastAudioPrayerIndex.value)
         try {

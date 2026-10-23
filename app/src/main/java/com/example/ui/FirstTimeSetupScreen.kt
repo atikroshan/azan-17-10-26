@@ -428,7 +428,7 @@ private fun SearchBarContent(
             ) {
                 if (searchQuery.isEmpty()) {
                     Text(
-                        text = "Search Masjid Name, Area or ID...",
+                        text = "Search Masjid Name, Location or ID...",
                         color = Color(0xFF94A3B8).copy(alpha = 0.75f),
                         fontSize = 14.sp
                     )
@@ -535,7 +535,7 @@ private fun SearchResultsList(
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Try searching by Area name or 9-digit Masjid ID",
+                    text = "Try searching by Location name or 9-digit Masjid ID",
                     fontSize = 11.5.sp,
                     color = Color(0xFF94A3B8),
                     textAlign = TextAlign.Center
@@ -684,7 +684,7 @@ private fun launchVoiceSearch(
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
             putExtra(
                 RecognizerIntent.EXTRA_PROMPT,
-                "Speak Masjid Name, Area or ID..."
+                "Speak Masjid Name, Location or ID..."
             )
         }
         launcher.launch(intent)

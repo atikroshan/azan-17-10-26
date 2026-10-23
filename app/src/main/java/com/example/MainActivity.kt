@@ -680,6 +680,7 @@ fun AzanHomeContent(
         var isPulledDown by rememberSaveable { mutableStateOf(true) }
         val sheetOffsetY = remember { Animatable(if (isPulledDown) maxPullDownPx else 0f) }
         val isPlayingAzan by com.example.service.AzanForegroundService.isPlayingAzan.collectAsState()
+        val isMuted by com.example.service.AzanForegroundService.isMuted.collectAsState()
 
         LaunchedEffect(isPulledDown, maxPullDownPx) {
             val target = if (isPulledDown) maxPullDownPx else 0f
@@ -896,16 +897,16 @@ fun AzanHomeContent(
 
                         Button(
                             onClick = {
-                                com.example.service.AzanForegroundService.silenceService(context)
+                                com.example.service.AzanForegroundService.toggleMuteService(context)
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF4B5563),
+                                containerColor = if (isMuted) Color(0xFFD97706) else Color(0xFF4B5563),
                                 contentColor = Color.White
                             ),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Silent", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(if (isMuted) "Unmute" else "Mute", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
 
@@ -1912,6 +1913,7 @@ fun AzanList(
     }
 
     val isPlayingAzan by com.example.service.AzanForegroundService.isPlayingAzan.collectAsState()
+    val isMuted by com.example.service.AzanForegroundService.isMuted.collectAsState()
 
     LaunchedEffect(currentNextIndex, isToday, isAccordionClosed) {
         if (isAccordionClosed) {
@@ -1932,7 +1934,7 @@ fun AzanList(
                     .padding(bottom = 6.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
                 shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color(0xFFEAB308))
+                border = BorderStroke(1.dp, if (isMuted) Color(0xFFD97706) else Color(0xFFEAB308))
             ) {
                 Row(
                     modifier = Modifier
@@ -1946,20 +1948,20 @@ fun AzanList(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.VolumeUp,
-                            contentDescription = "Azan Playing",
-                            tint = Color(0xFFEAB308),
+                            imageVector = if (isMuted) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                            contentDescription = if (isMuted) "Azan Muted" else "Azan Playing",
+                            tint = if (isMuted) Color(0xFFD97706) else Color(0xFFEAB308),
                             modifier = Modifier.size(22.dp)
                         )
                         Column {
                             Text(
-                                text = "Azan Playing",
+                                text = if (isMuted) "Azan Muted" else "Azan Playing",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
                                 color = Color.White
                             )
                             Text(
-                                text = "Playing once • Auto closing",
+                                text = if (isMuted) "Audio is muted • Playing silently" else "Playing once • Auto closing",
                                 fontSize = 10.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -1985,16 +1987,16 @@ fun AzanList(
 
                         Button(
                             onClick = {
-                                com.example.service.AzanForegroundService.silenceService(context)
+                                com.example.service.AzanForegroundService.toggleMuteService(context)
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF4B5563),
+                                containerColor = if (isMuted) Color(0xFFD97706) else Color(0xFF4B5563),
                                 contentColor = Color.White
                             ),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Silent", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(if (isMuted) "Unmute" else "Mute", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

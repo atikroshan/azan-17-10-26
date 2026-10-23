@@ -85,9 +85,9 @@ private class MasjidSelectorStrings(val lang: String) {
         else -> "Jammat"
     }
     val areaLabel = when (lang) {
-        "ur" -> "علاقہ"
-        "hi" -> "इलाका"
-        else -> "Area"
+        "ur" -> "مقام"
+        "hi" -> "स्थान"
+        else -> "Location"
     }
 }
 
@@ -467,7 +467,7 @@ fun MasjidSelectionDialog(
 
                                         Spacer(modifier = Modifier.height(3.dp))
 
-                                        // 2. Area
+                                        // 2. Location
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(4.dp)
