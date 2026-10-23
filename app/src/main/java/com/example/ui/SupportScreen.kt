@@ -370,7 +370,6 @@ fun SupportScreen(
                 language = uiState.language,
                 onSelectMasjid = onSelectMasjid,
                 onLanguageSelect = onLangSelect,
-                onChangeClick = onChangeMasjid,
                 modifier = Modifier.fillMaxWidth()
             )
 
