@@ -613,12 +613,11 @@ fun SupportScreen(
             Text(
                 text = "Made with devotion • v${BuildConfig.VERSION_NAME} • Powered by @tek",
                 fontSize = 10.5.sp,
-                fontWeight = FontWeight.Medium,
-                color = primaryGold.copy(alpha = 0.85f),
+                color = Color.White.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 2.dp)
+                    .padding(top = 4.dp, bottom = 2.dp)
             )
         }
     }
@@ -1270,6 +1269,46 @@ fun AddMasjidAutoDialog(
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Fit
                             )
+                        }
+                    } else {
+                        // When no photo for masjid given in the request form: default Azan Time logo and punchline
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF0F1A15), RoundedCornerShape(8.dp))
+                                .border(1.dp, Color(0xFF2E533F), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .background(Color(0xFF1E3328), CircleShape)
+                                    .border(1.dp, Color(0xFFF2CA50), CircleShape)
+                                    .padding(4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                androidx.compose.foundation.Image(
+                                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.foreground),
+                                    contentDescription = "Azan Time Logo",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "Azan Time Logo & Punchline",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFF3DE8E)
+                                )
+                                Text(
+                                    text = "\"AAO ALLAH KI RAAH MEIN CHALE\" (Default)",
+                                    fontSize = 10.sp,
+                                    color = Color.White.copy(alpha = 0.65f)
+                                )
+                            }
                         }
                     }
                 }

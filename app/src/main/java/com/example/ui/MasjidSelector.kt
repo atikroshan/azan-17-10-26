@@ -1,5 +1,14 @@
 package com.example.ui
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Mosque
@@ -21,12 +31,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
+import java.util.Locale
 import com.example.LanguageToggleRow
 import com.example.data.MasjidItem
 import com.example.data.getLocalizedName
@@ -55,9 +68,9 @@ private class MasjidSelectorStrings(val lang: String) {
         else -> "SELECT MASJID"
     }
     val selectMasjidSubtitle = when (lang) {
-        "ur" -> "100+ مساجد مقامی نماز کے اوقات کے ساتھ"
-        "hi" -> "100+ मस्जिदें स्थानीय नमाज़ समय सारणी के साथ"
-        else -> "100+ Masajid with Local Namaz Timetable"
+        "ur" -> "مساجد مقامی نماز کے اوقات کے ساتھ"
+        "hi" -> "मस्जिदें स्थानीय नमाज़ समय सारणी के साथ"
+        else -> "Masajid with Local Namaz Timetable"
     }
     val searchPlaceholder = when (lang) {
         "ur" -> "مسجد کا نام، علاقہ یا ID تلاش کریں..."
@@ -246,8 +259,49 @@ fun MasjidSelectionDialog(
     onLanguageSelect: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     val strings = remember(language) { MasjidSelectorStrings(language) }
+
+    // Speech to text activity launcher
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spokenTextList = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val spokenText = spokenTextList?.firstOrNull()?.trim()
+            if (!spokenText.isNullOrBlank()) {
+                searchQuery = spokenText
+            }
+        }
+    }
+
+    // Audio permission launcher for speech recognition
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            launchVoiceSearch(context, speechLauncher)
+        } else {
+            Toast.makeText(
+                context,
+                "Microphone permission is needed for voice search",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    fun startVoiceInput() {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasPermission) {
+            launchVoiceSearch(context, speechLauncher)
+        } else {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     val filteredMasajid = remember(searchQuery, allMasajid, language) {
         val q = searchQuery.trim().lowercase()
@@ -342,7 +396,7 @@ fun MasjidSelectionDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Search Bar
+                // Search Bar with Mic for Speak-to-Type
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -362,13 +416,33 @@ fun MasjidSelectionDialog(
                         )
                     },
                     trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { searchQuery = "" }) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            modifier = Modifier.padding(end = 4.dp)
+                        ) {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = "" },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Clear",
+                                        tint = Color.White.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                            IconButton(
+                                onClick = { startVoiceInput() },
+                                modifier = Modifier.size(36.dp)
+                            ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Clear",
-                                    tint = Color.White.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(16.dp)
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Speak to type",
+                                    tint = Color(0xFFF3DE8E),
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -527,5 +601,34 @@ fun MasjidSelectionDialog(
                 }
             }
         }
+    }
+}
+
+/**
+ * Helper to launch speech recognition intent for voice search
+ */
+private fun launchVoiceSearch(
+    context: Context,
+    launcher: androidx.activity.result.ActivityResultLauncher<Intent>
+) {
+    try {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(
+                RecognizerIntent.EXTRA_PROMPT,
+                "Speak masjid name, area or ID..."
+            )
+        }
+        launcher.launch(intent)
+    } catch (e: Exception) {
+        Toast.makeText(
+            context,
+            "Speech recognition is not supported on this device",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

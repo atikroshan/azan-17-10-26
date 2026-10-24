@@ -132,7 +132,10 @@ import com.example.data.MasjidItem
 import com.example.data.getLocalizedName
 import com.example.data.getLocalizedArea
 import com.example.data.getLocalizedCity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import com.example.ui.MasjidSelectorDropdown
+import com.example.ui.MasjidSelectionDialog
 
 class MainActivity : ComponentActivity() {
 
@@ -507,6 +510,20 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
             }
         )
     }
+
+    if (showMasjidSelectorScreen) {
+        MasjidSelectionDialog(
+            selectedMasjid = uiState.selectedMasjid,
+            allMasajid = uiState.allMasajid,
+            language = uiState.language,
+            onSelectMasjid = { masjid ->
+                viewModel.selectMasjid(masjid.id)
+                showMasjidSelectorScreen = false
+            },
+            onLanguageSelect = { viewModel.setLanguage(it) },
+            onDismiss = { showMasjidSelectorScreen = false }
+        )
+    }
 }
 
 data class HighlightedSlotInfo(
@@ -820,7 +837,7 @@ fun AzanHomeContent(
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
         ) {
-            val homePhoto = if (photoUrl.isNotBlank()) photoUrl else R.drawable.img_makkah_light
+            val hasMasjidPhoto = photoUrl.isNotBlank()
             var langRowHeightPx by remember { mutableIntStateOf(0) }
             val langRowHeightDp = with(density) { langRowHeightPx.toDp() }
             val photoTopPadding = if (langRowHeightDp > 0.dp) langRowHeightDp + 16.dp else 60.dp
@@ -835,32 +852,126 @@ fun AzanHomeContent(
                     .height(availablePhotoHeight),
                 contentAlignment = Alignment.Center
             ) {
-                // Subtle ambient background fill for wide/square letterboxed margins
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(homePhoto)
-                        .error(R.drawable.img_makkah_light)
-                        .crossfade(false)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(0.18f)
-                )
+                var imageLoadError by remember(photoUrl) { mutableStateOf(false) }
 
-                // Crisp, 100% full original mosque photo (unclipped, no harsh middle fade)
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(homePhoto)
-                        .error(R.drawable.img_makkah_light)
-                        .crossfade(false)
-                        .build(),
-                    contentDescription = "Selected Masjid",
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (hasMasjidPhoto && !imageLoadError) {
+                    // Subtle ambient background fill for wide/square letterboxed margins
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(photoUrl)
+                            .crossfade(false)
+                            .listener(onError = { _, _ -> imageLoadError = true })
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(0.18f)
+                    )
+
+                    // Crisp, 100% full original mosque photo (unclipped, no harsh middle fade)
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(photoUrl)
+                            .crossfade(false)
+                            .listener(onError = { _, _ -> imageLoadError = true })
+                            .build(),
+                        contentDescription = "Selected Masjid",
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // When no photo for masjid given in the request form: add azan time logo and punch line there not the makka masjid
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        Color(0xFF14241C),
+                                        Color(0xFF0F1A15),
+                                        Color(0xFF0A0F14)
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            // Circular Golden Medallion with Azan Time App Logo
+                            Box(
+                                modifier = Modifier
+                                    .size(92.dp)
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(Color(0xFF1E3328), Color(0xFF0D1712))
+                                        ),
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        BorderStroke(
+                                            2.dp,
+                                            Brush.verticalGradient(
+                                                listOf(
+                                                    Color(0xFFF3DE8E),
+                                                    Color(0xFFF2CA50),
+                                                    Color(0xFFB37C3C)
+                                                )
+                                            )
+                                        ),
+                                        shape = CircleShape
+                                    )
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.foreground),
+                                    contentDescription = "Azan Time Logo",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // AZAN TIME typography
+                            Text(
+                                text = "AZAN TIME",
+                                fontFamily = com.example.ui.GraenMetalFontFamily,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 2.sp,
+                                textAlign = TextAlign.Center,
+                                style = TextStyle(
+                                    brush = com.example.ui.GraenMetalGoldGradient,
+                                    shadow = com.example.ui.GraenMetalGoldShadow
+                                )
+                            )
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            // PUNCHLINE
+                            Text(
+                                text = "AAO ALLAH KI RAAH MEIN CHALE",
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = FontFamily.SansSerif,
+                                color = Color(0xFFF2CA50).copy(alpha = 0.90f),
+                                textAlign = TextAlign.Center,
+                                letterSpacing = 0.8.sp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
+                    }
+                }
             }
 
             Row(
@@ -1140,11 +1251,11 @@ fun AzanHomeContent(
                     Text(
                         text = "v${BuildConfig.VERSION_NAME} • Powered by @tek",
                         fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.4f),
+                        color = Color.White.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 1.dp, bottom = 1.dp),
-                        textAlign = TextAlign.Center
+                            .padding(vertical = 2.dp)
                     )
                 } else {
                     // When pulled up (default): full accordion will show
@@ -1167,11 +1278,11 @@ fun AzanHomeContent(
                         Text(
                             text = "v${BuildConfig.VERSION_NAME} • Powered by @tek",
                             fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.4f),
+                            color = Color.White.copy(alpha = 0.5f),
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 4.dp, bottom = 4.dp),
-                            textAlign = TextAlign.Center
+                                .padding(vertical = 4.dp)
                         )
                     }
                 }
