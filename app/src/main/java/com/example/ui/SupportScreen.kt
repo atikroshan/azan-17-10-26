@@ -18,6 +18,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -83,6 +84,7 @@ fun SupportScreen(
     var showRateUsDialog by remember { mutableStateOf(false) }
     var showOtherAmountDialog by remember { mutableStateOf(false) }
     var showUpiAppChooserDialog by remember { mutableStateOf(false) }
+    var showQrDialog by remember { mutableStateOf(false) }
     var selectedContributionAmount by remember { mutableIntStateOf(250) }
 
     // Rating system: safely read saved stars with fallback across all types (float, int, string), default 0.0
@@ -373,159 +375,171 @@ fun SupportScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // 5. Main Donation Card (Sadaqah Jariyah: QR Code on Left, Amounts & UPI on Right)
+            // 5. Main Donation Card (Sadaqah Jariyah: Styled like Support & Feedback, no side QR rectangle)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF071711)),
                 border = BorderStroke(1.dp, Color(0xFF1B3B2E))
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Left: QR Code
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { showUpiAppChooserDialog = true }
+                    // Header row: Balanced Center SADAQAH JARIYAH (in CAPS) + Larger QR Code button on Right
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(92.dp)
-                                .background(Color.White)
-                                .border(1.dp, primaryGold.copy(alpha = 0.6f))
-                                .padding(4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.qr_support_donate),
-                                contentDescription = "Donation QR Code",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Scan or Tap QR",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = primaryGold
-                        )
-                    }
+                        // Left balanced spacer matching QR button width for true center alignment
+                        Spacer(modifier = Modifier.width(88.dp))
 
-                    // Right: Sadaqah Jariyah, Amounts & UPI button
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        // Center: SADAQAH JARIYAH (CAPS and Centered)
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(50))
-                                    .background(Color(0xFF162D22))
-                                    .border(0.8.dp, Color(0xFF2E533F), RoundedCornerShape(50))
-                                    .padding(horizontal = 8.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "SADAQAH JARIYAH",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = primaryGold,
-                                    letterSpacing = 0.5.sp
-                                )
-                            }
                             Text(
-                                text = "Donate",
-                                fontSize = 10.sp,
+                                text = when (uiState.language) {
+                                    "ur" -> "صدقہ جاریہ"
+                                    "hi" -> "सदक़ा-ए-जारिया"
+                                    else -> "SADAQAH JARIYAH"
+                                },
+                                fontSize = 12.5.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4ADE80)
+                                color = Color.White,
+                                letterSpacing = 0.8.sp,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1
                             )
-                        }
-
-                        // Amounts
-                        val amounts = listOf(50, 100, 250, 500)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            amounts.forEach { amt ->
-                                val isSelected = selectedContributionAmount == amt
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(28.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isSelected) Color(0xFFE5B842) else Color(0xFF0F261C))
-                                        .border(
-                                            width = 1.dp,
-                                            color = if (isSelected) Color(0xFFFFE082) else Color(0xFF224836),
-                                            shape = RoundedCornerShape(6.dp)
-                                        )
-                                        .clickable {
-                                            selectedContributionAmount = amt
-                                            showUpiAppChooserDialog = true
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "₹$amt",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isSelected) Color(0xFF0F1713) else primaryGold
-                                    )
-                                }
-                            }
-
-                            val isOtherSelected = !amounts.contains(selectedContributionAmount)
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(28.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(if (isOtherSelected) Color(0xFFE5B842) else Color(0xFF0F261C))
-                                    .border(
-                                        width = 1.dp,
-                                        color = if (isOtherSelected) Color(0xFFFFE082) else Color(0xFF224836),
-                                        shape = RoundedCornerShape(6.dp)
-                                    )
-                                    .clickable { showOtherAmountDialog = true },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = if (isOtherSelected) "₹$selectedContributionAmount" else "Other",
-                                    fontSize = 9.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isOtherSelected) Color(0xFF0F1713) else primaryGold
-                                )
-                            }
-                        }
-
-                        // Pay UPI Button
-                        Button(
-                            onClick = { showUpiAppChooserDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF123425)),
-                            shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(1.dp, primaryGold.copy(alpha = 0.45f)),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp)
-                        ) {
                             Text(
-                                text = "Pay ₹$selectedContributionAmount via UPI (GPay, PhonePe, Paytm)",
+                                text = when (uiState.language) {
+                                    "ur" -> "ایپ تعاون و ثوابِ جاریہ"
+                                    "hi" -> "सवाब-ए-जारिया व ऐप सहयोग"
+                                    else -> "Support App & Sawab-e-Jariyah"
+                                },
                                 fontSize = 9.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryGold,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF4ADE80),
+                                textAlign = TextAlign.Center,
                                 maxLines = 1
                             )
                         }
+
+                        // Right: Larger QR Code button (thoda bada!)
+                        Box(
+                            modifier = Modifier
+                                .width(88.dp)
+                                .height(32.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color(0xFF162D22))
+                                .border(1.dp, Color(0xFF2E533F), RoundedCornerShape(50))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple(bounded = true, color = primaryGold),
+                                    onClick = { showQrDialog = true }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.QrCode,
+                                    contentDescription = "QR Code",
+                                    tint = primaryGold,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "QR Code",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryGold
+                                )
+                            }
+                        }
+                    }
+
+                    // Amounts
+                    val amounts = listOf(50, 100, 250, 500)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        amounts.forEach { amt ->
+                            val isSelected = selectedContributionAmount == amt
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(30.dp)
+                                    .clip(RoundedCornerShape(7.dp))
+                                    .background(if (isSelected) Color(0xFFE5B842) else Color(0xFF0F261C))
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isSelected) Color(0xFFFFE082) else Color(0xFF224836),
+                                        shape = RoundedCornerShape(7.dp)
+                                    )
+                                    .clickable {
+                                        selectedContributionAmount = amt
+                                        showUpiAppChooserDialog = true
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "₹$amt",
+                                    fontSize = 10.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color(0xFF0F1713) else primaryGold
+                                )
+                            }
+                        }
+
+                        val isOtherSelected = !amounts.contains(selectedContributionAmount)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(30.dp)
+                                .clip(RoundedCornerShape(7.dp))
+                                .background(if (isOtherSelected) Color(0xFFE5B842) else Color(0xFF0F261C))
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isOtherSelected) Color(0xFFFFE082) else Color(0xFF224836),
+                                    shape = RoundedCornerShape(7.dp)
+                                )
+                                .clickable { showOtherAmountDialog = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (isOtherSelected) "₹$selectedContributionAmount" else "Other",
+                                fontSize = 9.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isOtherSelected) Color(0xFF0F1713) else primaryGold
+                            )
+                        }
+                    }
+
+                    // Pay UPI Button
+                    Button(
+                        onClick = { showUpiAppChooserDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF123425)),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, primaryGold.copy(alpha = 0.45f)),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(30.dp)
+                    ) {
+                        Text(
+                            text = "Pay ₹$selectedContributionAmount via UPI (GPay, PhonePe, Paytm)",
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryGold,
+                            maxLines = 1
+                        )
                     }
                 }
             }
@@ -549,7 +563,11 @@ fun SupportScreen(
                             .clip(RoundedCornerShape(50))
                             .background(Color(0xFF1A271B))
                             .border(1.dp, Color(0xFFE5B842).copy(alpha = 0.5f), RoundedCornerShape(50))
-                            .clickable { showRateUsDialog = true }
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(bounded = true, color = Color(0xFFE5B842)),
+                                onClick = { showRateUsDialog = true }
+                            )
                             .padding(horizontal = 12.dp, vertical = 5.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -685,6 +703,70 @@ fun SupportScreen(
         }
     }
 
+    if (showQrDialog) {
+        Dialog(onDismissRequest = { showQrDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF0B1B15)),
+                border = BorderStroke(1.5.dp, Color(0xFFE5B842).copy(alpha = 0.55f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Scan QR to Donate",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryGold
+                        )
+                        IconButton(onClick = { showQrDialog = false }, modifier = Modifier.size(28.dp)) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .background(Color.White, RoundedCornerShape(12.dp))
+                            .border(1.5.dp, primaryGold.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                            .padding(10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.qr_support_donate),
+                            contentDescription = "Donation QR Code",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
+                    Text(
+                        text = "Scan using any UPI App (GPay, PhonePe, Paytm)",
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.75f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+
     // Rate Us Interactive Dialog (Supports Half-Stars e.g. 2.5 and Saves to Google Sheet)
     if (showRateUsDialog) {
         var tempRating by remember { mutableDoubleStateOf(if (userRating > 0.0) userRating else 5.0) }
@@ -709,7 +791,7 @@ fun SupportScreen(
                         color = primaryGold
                     )
                     Text(
-                        text = "Tap left half of a star for half point (e.g. 2.5, 3.5, 4.5) or right half for full star.",
+                        text = "Rate your experience. Submitting will save your rating and redirect to Google Play Store to review.",
                         fontSize = 11.5.sp,
                         color = Color.White.copy(alpha = 0.72f),
                         textAlign = TextAlign.Center
@@ -749,10 +831,29 @@ fun SupportScreen(
                                 }
                                 isSubmitting = false
                                 showRateUsDialog = false
+
+                                // Launch Google Play Store directly to app's listing page for rating & review
+                                try {
+                                    val pkgName = context.packageName
+                                    val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkgName")).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                    }
+                                    context.startActivity(marketIntent)
+                                } catch (e: Exception) {
+                                    try {
+                                        val pkgName = context.packageName
+                                        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkgName")).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(webIntent)
+                                    } catch (e2: Exception) {
+                                        // Ignore
+                                    }
+                                }
                             }
                             Toast.makeText(
                                 context,
-                                "⭐⭐⭐⭐⭐ JazakAllah Khair for rating ${String.format(Locale.US, "%.1f", tempRating)} stars!",
+                                "⭐⭐⭐⭐⭐ JazakAllah Khair! Opening Play Store...",
                                 Toast.LENGTH_SHORT
                             ).show()
                         },
@@ -770,7 +871,24 @@ fun SupportScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Saving...", color = Color(0xFF0F1713), fontWeight = FontWeight.Bold)
                         } else {
-                            Text("Submit Rating", color = Color(0xFF0F1713), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color(0xFF0F1713),
+                                    modifier = Modifier.size(17.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Submit & Rate on Play Store",
+                                    color = Color(0xFF0F1713),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.5.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -1424,7 +1542,10 @@ fun InteractiveHalfStarRatingBar(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .clickable {
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
                                 onRatingSelected(i - 0.5)
                             }
                     )
@@ -1432,7 +1553,10 @@ fun InteractiveHalfStarRatingBar(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .clickable {
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
                                 onRatingSelected(i.toDouble())
                             }
                     )

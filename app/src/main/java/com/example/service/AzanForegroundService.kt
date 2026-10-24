@@ -71,7 +71,54 @@ class AzanForegroundService : Service() {
             }
         }
 
+        fun getPrayerKey(prayerName: String?): String {
+            val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Kolkata"))
+            val day = cal.get(java.util.Calendar.DAY_OF_YEAR)
+            val year = cal.get(java.util.Calendar.YEAR)
+            val raw = (prayerName ?: "unknown").lowercase().trim()
+            val normalized = when (raw) {
+                "jumah", "juma" -> "dhuhr"
+                else -> raw
+            }
+            return "$year-$day-$normalized"
+        }
+
+        fun isPrayerStoppedOrHandled(context: Context, prayerName: String?): Boolean {
+            try {
+                val key = getPrayerKey(prayerName)
+                val prefs = context.getSharedPreferences("azan_prefs", Context.MODE_PRIVATE)
+                val handledKeys = prefs.getStringSet("handled_prayers_set", emptySet()) ?: emptySet()
+                return handledKeys.contains(key)
+            } catch (e: Exception) {
+                return false
+            }
+        }
+
+        fun markPrayerHandled(context: Context, prayerName: String?) {
+            try {
+                val key = getPrayerKey(prayerName)
+                val prefs = context.getSharedPreferences("azan_prefs", Context.MODE_PRIVATE)
+                val currentSet = prefs.getStringSet("handled_prayers_set", emptySet()) ?: emptySet()
+                val newSet = HashSet(currentSet)
+                newSet.add(key)
+                if (newSet.size > 20) {
+                    val cal = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Kolkata"))
+                    val todayDay = cal.get(java.util.Calendar.DAY_OF_YEAR)
+                    val todayYear = cal.get(java.util.Calendar.YEAR)
+                    newSet.retainAll { it.startsWith("$todayYear-$todayDay-") }
+                    newSet.add(key)
+                }
+                prefs.edit().putStringSet("handled_prayers_set", newSet).apply()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         fun stopService(context: Context) {
+            val playingName = currentPlayingPrayerName.value
+            if (playingName != null) {
+                markPrayerHandled(context, playingName)
+            }
             try {
                 serviceInstance?.stopAzanAudio()
             } catch (e: Throwable) {
@@ -255,6 +302,18 @@ class AzanForegroundService : Service() {
             return START_NOT_STICKY
         }
 
+        // GUARD: If this prayer was already stopped or played today, do not play again!
+        if (isPrayerStoppedOrHandled(this, azanName)) {
+            android.util.Log.d("AzanForegroundService", "Prayer $azanName has already been completed or stopped today. Skipping.")
+            try {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } catch (e: Exception) {
+                // Ignore
+            }
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         isMuted.value = false
         currentPlayingPrayerName.value = azanName
         
@@ -328,6 +387,10 @@ class AzanForegroundService : Service() {
     }
 
     fun stopAzanAudio() {
+        val playingName = currentPlayingPrayerName.value
+        if (playingName != null) {
+            markPrayerHandled(this, playingName)
+        }
         isPlayingAzan.value = false
         isMuted.value = false
         currentPlayingPrayerName.value = null
@@ -464,6 +527,8 @@ class AzanForegroundService : Service() {
 
             try {
                 player.start()
+                val currentPrayer = currentPlayingPrayerName.value
+                markPrayerHandled(this, currentPrayer)
                 android.util.Log.d("AzanForegroundService", "Azan audio playback started successfully")
             } catch (e: Exception) {
                 android.util.Log.e("AzanForegroundService", "Failed to start MediaPlayer", e)
@@ -500,6 +565,10 @@ class AzanForegroundService : Service() {
         }
         wakeLock = null
 
+        val playingName = currentPlayingPrayerName.value
+        if (playingName != null) {
+            markPrayerHandled(this, playingName)
+        }
         if (isPlayingAzan.value) {
             recordAudioFinished(this, System.currentTimeMillis(), lastAudioPrayerIndex.value)
         }

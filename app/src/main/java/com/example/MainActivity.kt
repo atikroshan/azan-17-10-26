@@ -1190,20 +1190,25 @@ fun AzanHomeContent(
                 shadowElevation = 6.dp,
                 modifier = Modifier
                     .size(44.dp)
-                    .clickable {
-                        coroutineScope.launch {
-                            val willSlideUp = sheetOffsetY.value > 10f
-                            val target = if (willSlideUp) 0f else maxPullDownPx
-                            isPulledDown = !willSlideUp
-                            sheetOffsetY.animateTo(
-                                targetValue = target,
-                                animationSpec = tween(
-                                    durationMillis = 260,
-                                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = true, color = Color(0xFF00221A)),
+                        onClick = {
+                            coroutineScope.launch {
+                                val willSlideUp = sheetOffsetY.value > 10f
+                                val target = if (willSlideUp) 0f else maxPullDownPx
+                                isPulledDown = !willSlideUp
+                                sheetOffsetY.animateTo(
+                                    targetValue = target,
+                                    animationSpec = tween(
+                                        durationMillis = 260,
+                                        easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                    )
                                 )
-                            )
+                            }
                         }
-                    }
+                    )
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     Icon(
@@ -1851,20 +1856,23 @@ fun AzanList(
             for ((name, pair) in prayerPairs) {
                 val (timeStr, isEnabled) = pair
                 if (isEnabled && timeStr == currentTimeStr) {
-                    val triggerKey = "$name-$currentTimeStr-$todayDayOfYear"
-                    if (lastTriggeredMinute != triggerKey) {
-                        lastTriggeredMinute = triggerKey
-                        try {
-                            val serviceIntent = Intent(context, com.example.service.AzanForegroundService::class.java).apply {
-                                putExtra("AZAN_NAME", name)
+                    if (!com.example.service.AzanForegroundService.isPrayerStoppedOrHandled(context, name)) {
+                        val triggerKey = "$name-$currentTimeStr-$todayDayOfYear"
+                        if (lastTriggeredMinute != triggerKey) {
+                            lastTriggeredMinute = triggerKey
+                            com.example.service.AzanForegroundService.markPrayerHandled(context, name)
+                            try {
+                                val serviceIntent = Intent(context, com.example.service.AzanForegroundService::class.java).apply {
+                                    putExtra("AZAN_NAME", name)
+                                }
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    context.startForegroundService(serviceIntent)
+                                } else {
+                                    context.startService(serviceIntent)
+                                }
+                            } catch (e: Throwable) {
+                                e.printStackTrace()
                             }
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                context.startForegroundService(serviceIntent)
-                            } else {
-                                context.startService(serviceIntent)
-                            }
-                        } catch (e: Throwable) {
-                            e.printStackTrace()
                         }
                     }
                 }
