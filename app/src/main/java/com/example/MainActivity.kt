@@ -389,70 +389,37 @@ fun AzanScreen(viewModel: AzanViewModel, uiState: com.example.ui.UIState, modifi
             modifier = modifier.fillMaxSize(),
             containerColor = Color.Black,
             bottomBar = {
-            Surface(
-                color = Color(0xFF0A1610).copy(alpha = 0.96f),
-                contentColor = Color(0xFFF3DE8E),
-                tonalElevation = 8.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(BorderStroke(0.5.dp, Color(0xFFF3DE8E).copy(alpha = 0.2f)))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Left: Support Button (Circle shape)
-                    NavCircleItem(
-                        selected = selectedTab == "support",
-                        onClick = { selectedTab = "support" },
-                        icon = if (selectedTab == "support") Icons.Filled.HeadsetMic else Icons.Outlined.HeadsetMic,
-                        label = supportLabel,
-                        testTag = "nav_support_button"
-                    )
-
-                    // Center: Home Button (Circle shape)
-                    NavCircleItem(
-                        selected = selectedTab == "home",
-                        onClick = {
-                            selectedTab = "home"
+                com.example.ui.AnimatedCurvedNavBar(
+                    selectedTab = selectedTab,
+                    onSelectTab = { tab ->
+                        selectedTab = tab
+                        if (tab == "home") {
                             viewModel.selectToday()
-                        },
-                        icon = if (selectedTab == "home") Icons.Filled.Home else Icons.Outlined.Home,
-                        label = homeLabel,
-                        testTag = "nav_home_button"
-                    )
-
-                    // Right: Ramazan Section Button (Circle shape) with 5-tap activation
-                    NavCircleItem(
-                        selected = selectedTab == "ramazan",
-                        onClick = {
-                            ramazanTapCount++
-                            if (!effectiveRamazanActive && ramazanTapCount >= 5) {
-                                forcedRamazanActive = true
-                                android.widget.Toast.makeText(context, "Ramazan section activated!", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    supportLabel = supportLabel,
+                    homeLabel = homeLabel,
+                    ramazanLabel = ramazanLabel,
+                    isRamazanEnabled = effectiveRamazanActive,
+                    onRamazanTap = {
+                        ramazanTapCount++
+                        if (!effectiveRamazanActive && ramazanTapCount >= 5) {
+                            forcedRamazanActive = true
+                            android.widget.Toast.makeText(context, "Ramazan section activated!", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        if (effectiveRamazanActive) {
+                            selectedTab = "ramazan"
+                        } else {
+                            val msg = when (uiState.language) {
+                                "ur" -> "رمضان سیکشن 5 فروری 2027 سے دستیاب ہوگا"
+                                "hi" -> "रमज़ान सेक्शन 5 फ़रवरी 2027 से शुरू होगा"
+                                else -> "Ramazan section will be available from 5 Feb 2027"
                             }
-                            if (effectiveRamazanActive) {
-                                selectedTab = "ramazan"
-                            } else {
-                                val msg = when (uiState.language) {
-                                    "ur" -> "رمضان سیکشن 5 فروری 2027 سے دستیاب ہوگا"
-                                    "hi" -> "रमज़ान सेक्शन 5 फ़रवरी 2027 से शुरू होगा"
-                                    else -> "Ramazan section will be available from 5 Feb 2027"
-                                }
-                                android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        icon = if (selectedTab == "ramazan") Icons.Filled.NightsStay else Icons.Outlined.NightsStay,
-                        label = ramazanLabel,
-                        testTag = "nav_ramazan_button",
-                        enabled = effectiveRamazanActive
-                    )
-                }
+                            android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
             }
-        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -624,10 +591,10 @@ fun SlidingArrowHandle(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "arrowFloat")
     val animatedOffsetY by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = if (isPulledDown) -2.5f else 2.5f,
+        initialValue = -3f,
+        targetValue = 3f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+            animation = tween(durationMillis = 1600, easing = androidx.compose.animation.core.FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "arrowOffsetY"
@@ -1322,11 +1289,10 @@ fun AzanHomeContent(
                     )
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(
-                        imageVector = if (isPulledDown) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "Toggle Sheet",
-                        tint = Color(0xFF00221a),
-                        modifier = Modifier.size(28.dp)
+                    SlidingArrowHandle(
+                        isPulledDown = isPulledDown,
+                        onClick = {},
+                        scale = 1.15f
                     )
                 }
             }
